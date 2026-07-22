@@ -12,7 +12,20 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedWeeklyReportRouteImport } from './routes/_authenticated/weekly-report'
+import { Route as AuthenticatedTrustFundsRouteImport } from './routes/_authenticated/trust-funds'
+import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
+import { Route as AuthenticatedRemittanceRouteImport } from './routes/_authenticated/remittance'
+import { Route as AuthenticatedReceiptsRouteImport } from './routes/_authenticated/receipts'
+import { Route as AuthenticatedMonthlyStatementRouteImport } from './routes/_authenticated/monthly-statement'
+import { Route as AuthenticatedMembersRouteImport } from './routes/_authenticated/members'
+import { Route as AuthenticatedLocalFundsRouteImport } from './routes/_authenticated/local-funds'
+import { Route as AuthenticatedExpensesRouteImport } from './routes/_authenticated/expenses'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedChurchProfileRouteImport } from './routes/_authenticated/church-profile'
+import { Route as AuthenticatedCashStatementRouteImport } from './routes/_authenticated/cash-statement'
+import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated/audit'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -28,40 +41,193 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedWeeklyReportRoute =
+  AuthenticatedWeeklyReportRouteImport.update({
+    id: '/weekly-report',
+    path: '/weekly-report',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedTrustFundsRoute = AuthenticatedTrustFundsRouteImport.update({
+  id: '/trust-funds',
+  path: '/trust-funds',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRemittanceRoute = AuthenticatedRemittanceRouteImport.update({
+  id: '/remittance',
+  path: '/remittance',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedReceiptsRoute = AuthenticatedReceiptsRouteImport.update({
+  id: '/receipts',
+  path: '/receipts',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMonthlyStatementRoute =
+  AuthenticatedMonthlyStatementRouteImport.update({
+    id: '/monthly-statement',
+    path: '/monthly-statement',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMembersRoute = AuthenticatedMembersRouteImport.update({
+  id: '/members',
+  path: '/members',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLocalFundsRoute = AuthenticatedLocalFundsRouteImport.update({
+  id: '/local-funds',
+  path: '/local-funds',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedExpensesRoute = AuthenticatedExpensesRouteImport.update({
+  id: '/expenses',
+  path: '/expenses',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedChurchProfileRoute =
+  AuthenticatedChurchProfileRouteImport.update({
+    id: '/church-profile',
+    path: '/church-profile',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCashStatementRoute =
+  AuthenticatedCashStatementRouteImport.update({
+    id: '/cash-statement',
+    path: '/cash-statement',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAuditRoute = AuthenticatedAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/audit': typeof AuthenticatedAuditRoute
+  '/cash-statement': typeof AuthenticatedCashStatementRoute
+  '/church-profile': typeof AuthenticatedChurchProfileRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/expenses': typeof AuthenticatedExpensesRoute
+  '/local-funds': typeof AuthenticatedLocalFundsRoute
+  '/members': typeof AuthenticatedMembersRoute
+  '/monthly-statement': typeof AuthenticatedMonthlyStatementRoute
+  '/receipts': typeof AuthenticatedReceiptsRoute
+  '/remittance': typeof AuthenticatedRemittanceRoute
+  '/reports': typeof AuthenticatedReportsRoute
+  '/trust-funds': typeof AuthenticatedTrustFundsRoute
+  '/weekly-report': typeof AuthenticatedWeeklyReportRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/audit': typeof AuthenticatedAuditRoute
+  '/cash-statement': typeof AuthenticatedCashStatementRoute
+  '/church-profile': typeof AuthenticatedChurchProfileRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/expenses': typeof AuthenticatedExpensesRoute
+  '/local-funds': typeof AuthenticatedLocalFundsRoute
+  '/members': typeof AuthenticatedMembersRoute
+  '/monthly-statement': typeof AuthenticatedMonthlyStatementRoute
+  '/receipts': typeof AuthenticatedReceiptsRoute
+  '/remittance': typeof AuthenticatedRemittanceRoute
+  '/reports': typeof AuthenticatedReportsRoute
+  '/trust-funds': typeof AuthenticatedTrustFundsRoute
+  '/weekly-report': typeof AuthenticatedWeeklyReportRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/audit': typeof AuthenticatedAuditRoute
+  '/_authenticated/cash-statement': typeof AuthenticatedCashStatementRoute
+  '/_authenticated/church-profile': typeof AuthenticatedChurchProfileRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/expenses': typeof AuthenticatedExpensesRoute
+  '/_authenticated/local-funds': typeof AuthenticatedLocalFundsRoute
+  '/_authenticated/members': typeof AuthenticatedMembersRoute
+  '/_authenticated/monthly-statement': typeof AuthenticatedMonthlyStatementRoute
+  '/_authenticated/receipts': typeof AuthenticatedReceiptsRoute
+  '/_authenticated/remittance': typeof AuthenticatedRemittanceRoute
+  '/_authenticated/reports': typeof AuthenticatedReportsRoute
+  '/_authenticated/trust-funds': typeof AuthenticatedTrustFundsRoute
+  '/_authenticated/weekly-report': typeof AuthenticatedWeeklyReportRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/admin'
+    | '/audit'
+    | '/cash-statement'
+    | '/church-profile'
+    | '/dashboard'
+    | '/expenses'
+    | '/local-funds'
+    | '/members'
+    | '/monthly-statement'
+    | '/receipts'
+    | '/remittance'
+    | '/reports'
+    | '/trust-funds'
+    | '/weekly-report'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard'
+  to:
+    | '/'
+    | '/auth'
+    | '/admin'
+    | '/audit'
+    | '/cash-statement'
+    | '/church-profile'
+    | '/dashboard'
+    | '/expenses'
+    | '/local-funds'
+    | '/members'
+    | '/monthly-statement'
+    | '/receipts'
+    | '/remittance'
+    | '/reports'
+    | '/trust-funds'
+    | '/weekly-report'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/admin'
+    | '/_authenticated/audit'
+    | '/_authenticated/cash-statement'
+    | '/_authenticated/church-profile'
     | '/_authenticated/dashboard'
+    | '/_authenticated/expenses'
+    | '/_authenticated/local-funds'
+    | '/_authenticated/members'
+    | '/_authenticated/monthly-statement'
+    | '/_authenticated/receipts'
+    | '/_authenticated/remittance'
+    | '/_authenticated/reports'
+    | '/_authenticated/trust-funds'
+    | '/_authenticated/weekly-report'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -93,6 +259,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/weekly-report': {
+      id: '/_authenticated/weekly-report'
+      path: '/weekly-report'
+      fullPath: '/weekly-report'
+      preLoaderRoute: typeof AuthenticatedWeeklyReportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/trust-funds': {
+      id: '/_authenticated/trust-funds'
+      path: '/trust-funds'
+      fullPath: '/trust-funds'
+      preLoaderRoute: typeof AuthenticatedTrustFundsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/reports': {
+      id: '/_authenticated/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AuthenticatedReportsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/remittance': {
+      id: '/_authenticated/remittance'
+      path: '/remittance'
+      fullPath: '/remittance'
+      preLoaderRoute: typeof AuthenticatedRemittanceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/receipts': {
+      id: '/_authenticated/receipts'
+      path: '/receipts'
+      fullPath: '/receipts'
+      preLoaderRoute: typeof AuthenticatedReceiptsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/monthly-statement': {
+      id: '/_authenticated/monthly-statement'
+      path: '/monthly-statement'
+      fullPath: '/monthly-statement'
+      preLoaderRoute: typeof AuthenticatedMonthlyStatementRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/members': {
+      id: '/_authenticated/members'
+      path: '/members'
+      fullPath: '/members'
+      preLoaderRoute: typeof AuthenticatedMembersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/local-funds': {
+      id: '/_authenticated/local-funds'
+      path: '/local-funds'
+      fullPath: '/local-funds'
+      preLoaderRoute: typeof AuthenticatedLocalFundsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/expenses': {
+      id: '/_authenticated/expenses'
+      path: '/expenses'
+      fullPath: '/expenses'
+      preLoaderRoute: typeof AuthenticatedExpensesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -100,15 +329,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/church-profile': {
+      id: '/_authenticated/church-profile'
+      path: '/church-profile'
+      fullPath: '/church-profile'
+      preLoaderRoute: typeof AuthenticatedChurchProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/cash-statement': {
+      id: '/_authenticated/cash-statement'
+      path: '/cash-statement'
+      fullPath: '/cash-statement'
+      preLoaderRoute: typeof AuthenticatedCashStatementRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/audit': {
+      id: '/_authenticated/audit'
+      path: '/audit'
+      fullPath: '/audit'
+      preLoaderRoute: typeof AuthenticatedAuditRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAuditRoute: typeof AuthenticatedAuditRoute
+  AuthenticatedCashStatementRoute: typeof AuthenticatedCashStatementRoute
+  AuthenticatedChurchProfileRoute: typeof AuthenticatedChurchProfileRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedExpensesRoute: typeof AuthenticatedExpensesRoute
+  AuthenticatedLocalFundsRoute: typeof AuthenticatedLocalFundsRoute
+  AuthenticatedMembersRoute: typeof AuthenticatedMembersRoute
+  AuthenticatedMonthlyStatementRoute: typeof AuthenticatedMonthlyStatementRoute
+  AuthenticatedReceiptsRoute: typeof AuthenticatedReceiptsRoute
+  AuthenticatedRemittanceRoute: typeof AuthenticatedRemittanceRoute
+  AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
+  AuthenticatedTrustFundsRoute: typeof AuthenticatedTrustFundsRoute
+  AuthenticatedWeeklyReportRoute: typeof AuthenticatedWeeklyReportRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAuditRoute: AuthenticatedAuditRoute,
+  AuthenticatedCashStatementRoute: AuthenticatedCashStatementRoute,
+  AuthenticatedChurchProfileRoute: AuthenticatedChurchProfileRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedExpensesRoute: AuthenticatedExpensesRoute,
+  AuthenticatedLocalFundsRoute: AuthenticatedLocalFundsRoute,
+  AuthenticatedMembersRoute: AuthenticatedMembersRoute,
+  AuthenticatedMonthlyStatementRoute: AuthenticatedMonthlyStatementRoute,
+  AuthenticatedReceiptsRoute: AuthenticatedReceiptsRoute,
+  AuthenticatedRemittanceRoute: AuthenticatedRemittanceRoute,
+  AuthenticatedReportsRoute: AuthenticatedReportsRoute,
+  AuthenticatedTrustFundsRoute: AuthenticatedTrustFundsRoute,
+  AuthenticatedWeeklyReportRoute: AuthenticatedWeeklyReportRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
