@@ -10,7 +10,7 @@ export const Route = createFileRoute("/")({
       { title: "SDA Treasurer — Digital church treasury" },
       { name: "description", content: "Replace paper bookkeeping with a modern digital church treasury. Automate receipts, cash statements, trust funds and conference remittances." },
       { property: "og:title", content: "SDA Treasurer — Digital church treasury" },
-      { property: "og:description", content: "Receipts, cash statements, trust funds, remittances and reports for SDA local churches." },
+      { property: "og:description", content: "Replace paper bookkeeping with a modern digital church treasury. Automate receipts, cash statements, trust funds and conference remittances." },
     ],
   }),
   component: Landing,

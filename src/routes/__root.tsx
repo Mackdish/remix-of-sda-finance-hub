@@ -79,14 +79,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "SDA Treasurer — Church Cash Flow & Offerings" },
-      { name: "description", content: "Modern SDA church treasurer system for receipts, cash statements, trust funds, remittances and reports." },
+      { title: "SDA Treasurer — Digital church treasury" },
+      { name: "description", content: "Replace paper bookkeeping with a modern digital church treasury. Automate receipts, cash statements, trust funds and conference remittances." },
       { name: "author", content: "SDA Treasurer" },
-      { property: "og:title", content: "SDA Treasurer" },
-      { property: "og:description", content: "Digital SDA church treasury: receipts, cash statements, trust funds, conference remittance." },
+      { property: "og:title", content: "SDA Treasurer — Digital church treasury" },
+      { property: "og:description", content: "Replace paper bookkeeping with a modern digital church treasury. Automate receipts, cash statements, trust funds and conference remittances." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "SDA Treasurer — Digital church treasury" },
+      { name: "twitter:description", content: "Replace paper bookkeeping with a modern digital church treasury. Automate receipts, cash statements, trust funds and conference remittances." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fe871681-fbba-4fb6-a15e-4a030e6e3a97/id-preview-345009b7--db674955-b9b6-4855-889b-b47034372e55.lovable.app-1784733440004.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fe871681-fbba-4fb6-a15e-4a030e6e3a97/id-preview-345009b7--db674955-b9b6-4855-889b-b47034372e55.lovable.app-1784733440004.png" },
     ],
     links: [
       {
