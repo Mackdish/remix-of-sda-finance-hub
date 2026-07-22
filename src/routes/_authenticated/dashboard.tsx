@@ -11,6 +11,7 @@ import {
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid,
 } from "recharts";
+import { useUserRoles, canAccess } from "@/lib/access";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — SDA Treasurer" }] }),
@@ -85,6 +86,8 @@ const CHART_COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var
 function Dashboard() {
   const { data, isLoading } = useQuery({ queryKey: ["dashboard"], queryFn: loadKpis });
   const k = data;
+  const { data: roles } = useUserRoles();
+  const userRoles = roles ?? [];
 
   const kpis = [
     { label: "Today's Collections", value: k?.todayTotal ?? 0, icon: Receipt, tint: "bg-primary/10 text-primary" },
@@ -103,10 +106,18 @@ function Dashboard() {
           <p className="text-sm text-muted-foreground">Real-time overview of your church's cash flow.</p>
         </div>
         <div className="flex flex-wrap gap-2 no-print">
-          <Button asChild><Link to="/receipts"><Plus className="h-4 w-4 mr-1" /> New Receipt</Link></Button>
-          <Button asChild variant="secondary"><Link to="/cash-statement"><FileSpreadsheet className="h-4 w-4 mr-1" /> Cash Statement</Link></Button>
-          <Button asChild variant="secondary"><Link to="/expenses"><Wallet className="h-4 w-4 mr-1" /> Expense</Link></Button>
-          <Button asChild variant="outline"><Link to="/reports"><Printer className="h-4 w-4 mr-1" /> Reports</Link></Button>
+          {canAccess("/receipts", userRoles) && (
+            <Button asChild><Link to="/receipts"><Plus className="h-4 w-4 mr-1" /> New Receipt</Link></Button>
+          )}
+          {canAccess("/cash-statement", userRoles) && (
+            <Button asChild variant="secondary"><Link to="/cash-statement"><FileSpreadsheet className="h-4 w-4 mr-1" /> Cash Statement</Link></Button>
+          )}
+          {canAccess("/expenses", userRoles) && (
+            <Button asChild variant="secondary"><Link to="/expenses"><Wallet className="h-4 w-4 mr-1" /> Expense</Link></Button>
+          )}
+          {canAccess("/reports", userRoles) && (
+            <Button asChild variant="outline"><Link to="/reports"><Printer className="h-4 w-4 mr-1" /> Reports</Link></Button>
+          )}
         </div>
       </div>
 
