@@ -35,6 +35,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { useUserRoles, canAccess } from "@/lib/access";
 
 const nav = {
   Overview: [
@@ -72,6 +73,8 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [email, setEmail] = useState<string | null>(null);
+  const { data: roles } = useUserRoles();
+  const userRoles = roles ?? [];
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
@@ -100,12 +103,15 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {Object.entries(nav).map(([group, items]) => (
+        {Object.entries(nav).map(([group, items]) => {
+          const visible = items.filter((item) => canAccess(item.url, userRoles));
+          if (visible.length === 0) return null;
+          return (
           <SidebarGroup key={group}>
             {!collapsed && <SidebarGroupLabel>{group}</SidebarGroupLabel>}
             <SidebarGroupContent>
               <SidebarMenu>
-                {items.map((item) => {
+                {visible.map((item) => {
                   const active = currentPath === item.url;
                   return (
                     <SidebarMenuItem key={item.url}>
@@ -121,7 +127,8 @@ export function AppSidebar() {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-        ))}
+          );
+        })}
       </SidebarContent>
       <SidebarFooter>
         {!collapsed && email && (
