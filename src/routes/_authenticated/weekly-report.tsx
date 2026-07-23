@@ -1,10 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ComingSoon } from "@/components/coming-soon";
-import { CalendarDays } from "lucide-react";
+import { WeeklyReportPage } from "@/features/statements/weekly-report-page";
 
 export const Route = createFileRoute("/_authenticated/weekly-report")({
   head: () => ({ meta: [{ title: "Weekly Report — SDA Treasurer" }] }),
-  component: () => (
-    <ComingSoon title="Weekly Cash Count & Offerings" description="Weeks One to Five with automatic totals and summaries." icon={<CalendarDays className="h-5 w-5" />} />
-  ),
+  component: WeeklyReportPage,
 });
