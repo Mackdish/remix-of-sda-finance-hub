@@ -1,0 +1,369 @@
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useCurrentChurch } from "@/lib/church";
+import { PageHeader, NoChurch } from "@/components/page-header";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { formatCurrency } from "@/lib/format";
+import { Plus, Printer, Search, Receipt as ReceiptIcon } from "lucide-react";
+import { printElement } from "@/lib/print";
+
+type Category = { id: string; name: string; fund_type: "trust" | "local"; conference_split_pct: number };
+type Member = { id: string; full_name: string; membership_number: string | null; phone: string | null; department: string | null };
+type ReceiptRow = {
+  id: string; receipt_number: string; transaction_date: string; member_name: string | null;
+  membership_number: string | null; amount: number; payment_method: string;
+  offering_categories: { name: string; fund_type: string } | null;
+};
+
+const PAY = ["cash", "mpesa", "bank_transfer", "cheque", "bank_deposit"] as const;
+
+export function ReceiptsPage() {
+  const { data: church } = useCurrentChurch();
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const [printing, setPrinting] = useState<ReceiptRow | null>(null);
+
+  const { data: cats = [] } = useQuery({
+    queryKey: ["offering-cats", church?.id],
+    enabled: !!church,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("offering_categories")
+        .select("id,name,fund_type,conference_split_pct")
+        .eq("is_active", true)
+        .order("sort_order");
+      return (data ?? []) as Category[];
+    },
+  });
+
+  const { data: members = [] } = useQuery({
+    queryKey: ["members", church?.id],
+    enabled: !!church,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("church_members")
+        .select("id,full_name,membership_number,phone,department")
+        .eq("church_id", church!.id)
+        .order("full_name");
+      return (data ?? []) as Member[];
+    },
+  });
+
+  const { data: rows = [], isLoading } = useQuery({
+    queryKey: ["receipts", church?.id],
+    enabled: !!church,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("receipts")
+        .select("id,receipt_number,transaction_date,member_name,membership_number,amount,payment_method,offering_categories(name,fund_type)")
+        .eq("church_id", church!.id)
+        .order("created_at", { ascending: false })
+        .limit(200);
+      return (data ?? []) as unknown as ReceiptRow[];
+    },
+  });
+
+  const filtered = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    if (!term) return rows;
+    return rows.filter(
+      (r) =>
+        r.receipt_number.toLowerCase().includes(term) ||
+        (r.member_name ?? "").toLowerCase().includes(term) ||
+        (r.membership_number ?? "").toLowerCase().includes(term),
+    );
+  }, [rows, q]);
+
+  if (!church) return <><PageHeader title="Receipts" /><NoChurch /></>;
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Receipts"
+        description="Sequentially numbered receipts for every offering and donation."
+        actions={
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button><Plus className="h-4 w-4 mr-1" /> New Receipt</Button>
+            </DialogTrigger>
+            <NewReceiptDialog
+              church={church}
+              categories={cats}
+              members={members}
+              onDone={(row) => {
+                setOpen(false);
+                qc.invalidateQueries({ queryKey: ["receipts"] });
+                qc.invalidateQueries({ queryKey: ["dashboard"] });
+                if (row) setPrinting(row);
+              }}
+            />
+          </Dialog>
+        }
+      />
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-2">
+          <CardTitle className="text-base">All receipts</CardTitle>
+          <div className="relative w-64 max-w-full">
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search receipt, member…" className="pl-8" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">Loading…</div>
+          ) : filtered.length === 0 ? (
+            <div className="py-10 text-center text-sm text-muted-foreground">
+              <ReceiptIcon className="h-6 w-6 mx-auto mb-2 opacity-50" />
+              No receipts yet. Click <span className="font-medium text-foreground">New Receipt</span> to record one.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-left text-muted-foreground">
+                  <tr>
+                    <th className="py-2 pr-4">Receipt #</th>
+                    <th className="py-2 pr-4">Date</th>
+                    <th className="py-2 pr-4">Member</th>
+                    <th className="py-2 pr-4">Category</th>
+                    <th className="py-2 pr-4">Method</th>
+                    <th className="py-2 pr-4 text-right">Amount</th>
+                    <th className="py-2 pr-4"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((r) => (
+                    <tr key={r.id} className="border-t border-border">
+                      <td className="py-2 pr-4 font-mono">{r.receipt_number}</td>
+                      <td className="py-2 pr-4">{r.transaction_date}</td>
+                      <td className="py-2 pr-4">{r.member_name ?? "—"}</td>
+                      <td className="py-2 pr-4">{r.offering_categories?.name ?? "—"}</td>
+                      <td className="py-2 pr-4 capitalize">{r.payment_method.replace("_", " ")}</td>
+                      <td className="py-2 pr-4 text-right">{formatCurrency(r.amount)}</td>
+                      <td className="py-2 pr-4 text-right">
+                        <Button size="sm" variant="ghost" onClick={() => setPrinting(r)}>
+                          <Printer className="h-4 w-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {printing && (
+        <PrintReceiptDialog receipt={printing} church={church} onClose={() => setPrinting(null)} />
+      )}
+    </div>
+  );
+}
+
+function NewReceiptDialog({
+  church, categories, members, onDone,
+}: {
+  church: { id: string; name: string };
+  categories: Category[];
+  members: Member[];
+  onDone: (row: ReceiptRow | null) => void;
+}) {
+  const [form, setForm] = useState({
+    transaction_date: new Date().toISOString().slice(0, 10),
+    member_id: "",
+    member_name: "",
+    membership_number: "",
+    phone: "",
+    department: "",
+    offering_category_id: "",
+    amount: "",
+    payment_method: "cash" as (typeof PAY)[number],
+    reference_number: "",
+    description: "",
+  });
+
+  const create = useMutation({
+    mutationFn: async () => {
+      const amount = Number(form.amount);
+      if (!amount || amount <= 0) throw new Error("Enter a valid amount");
+      if (!form.offering_category_id) throw new Error("Select an offering category");
+      if (!form.member_name.trim()) throw new Error("Enter the giver's name");
+      const { data: uData } = await supabase.auth.getUser();
+      const receipt_number = `R-${Date.now().toString().slice(-8)}`;
+      const { data, error } = await supabase
+        .from("receipts")
+        .insert({
+          church_id: church.id,
+          receipt_number,
+          transaction_date: form.transaction_date,
+          member_id: form.member_id || null,
+          member_name: form.member_name.trim(),
+          membership_number: form.membership_number || null,
+          phone: form.phone || null,
+          department: form.department || null,
+          offering_category_id: form.offering_category_id,
+          amount,
+          payment_method: form.payment_method,
+          reference_number: form.reference_number || null,
+          description: form.description || null,
+          recorded_by: uData.user?.id ?? null,
+        })
+        .select("id,receipt_number,transaction_date,member_name,membership_number,amount,payment_method,offering_categories(name,fund_type)")
+        .single();
+      if (error) throw error;
+      return data as unknown as ReceiptRow;
+    },
+    onSuccess: (row) => {
+      toast.success(`Receipt ${row.receipt_number} recorded`);
+      onDone(row);
+    },
+    onError: (e: any) => toast.error(e.message ?? "Failed to save"),
+  });
+
+  return (
+    <DialogContent className="max-w-2xl">
+      <DialogHeader><DialogTitle>New Receipt</DialogTitle></DialogHeader>
+      <div className="grid gap-3 md:grid-cols-2">
+        <div>
+          <Label>Date</Label>
+          <Input type="date" value={form.transaction_date} onChange={(e) => setForm({ ...form, transaction_date: e.target.value })} />
+        </div>
+        <div>
+          <Label>Member</Label>
+          <Select
+            value={form.member_id}
+            onValueChange={(v) => {
+              const m = members.find((x) => x.id === v);
+              setForm({
+                ...form,
+                member_id: v,
+                member_name: m?.full_name ?? form.member_name,
+                membership_number: m?.membership_number ?? "",
+                phone: m?.phone ?? "",
+                department: m?.department ?? "",
+              });
+            }}
+          >
+            <SelectTrigger><SelectValue placeholder="Select existing (optional)" /></SelectTrigger>
+            <SelectContent>
+              {members.map((m) => <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="md:col-span-2">
+          <Label>Giver's name *</Label>
+          <Input value={form.member_name} onChange={(e) => setForm({ ...form, member_name: e.target.value })} placeholder="Full name" />
+        </div>
+        <div>
+          <Label>Membership #</Label>
+          <Input value={form.membership_number} onChange={(e) => setForm({ ...form, membership_number: e.target.value })} />
+        </div>
+        <div>
+          <Label>Phone</Label>
+          <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+        </div>
+        <div>
+          <Label>Offering category *</Label>
+          <Select value={form.offering_category_id} onValueChange={(v) => setForm({ ...form, offering_category_id: v })}>
+            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+            <SelectContent>
+              {categories.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name} <span className="text-xs text-muted-foreground">({c.fund_type})</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Amount (KES) *</Label>
+          <Input type="number" step="0.01" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
+        </div>
+        <div>
+          <Label>Payment method</Label>
+          <Select value={form.payment_method} onValueChange={(v) => setForm({ ...form, payment_method: v as any })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {PAY.map((p) => <SelectItem key={p} value={p} className="capitalize">{p.replace("_", " ")}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Reference #</Label>
+          <Input value={form.reference_number} onChange={(e) => setForm({ ...form, reference_number: e.target.value })} placeholder="M-Pesa code, cheque #" />
+        </div>
+        <div className="md:col-span-2">
+          <Label>Notes</Label>
+          <Textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+        </div>
+      </div>
+      <DialogFooter>
+        <Button variant="outline" onClick={() => onDone(null)}>Cancel</Button>
+        <Button onClick={() => create.mutate()} disabled={create.isPending}>
+          {create.isPending ? "Saving…" : "Save & Print"}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  );
+}
+
+function PrintReceiptDialog({
+  receipt, church, onClose,
+}: {
+  receipt: ReceiptRow;
+  church: { name: string; address?: string | null; city?: string | null; phone?: string | null };
+  onClose: () => void;
+}) {
+  return (
+    <Dialog open onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader><DialogTitle>Receipt Preview</DialogTitle></DialogHeader>
+        <div id="receipt-print" className="border border-border rounded-md p-6 text-sm bg-card">
+          <div className="text-center border-b border-border pb-3 mb-3">
+            <div className="font-bold text-primary text-lg">{church.name}</div>
+            <div className="text-xs text-muted-foreground">
+              {[church.address, church.city].filter(Boolean).join(", ")}
+              {church.phone ? ` · ${church.phone}` : ""}
+            </div>
+            <div className="mt-2 font-semibold">OFFICIAL RECEIPT</div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div><span className="text-muted-foreground">Receipt #:</span> <span className="font-mono">{receipt.receipt_number}</span></div>
+            <div><span className="text-muted-foreground">Date:</span> {receipt.transaction_date}</div>
+            <div className="col-span-2"><span className="text-muted-foreground">Received from:</span> <span className="font-medium">{receipt.member_name}</span></div>
+            <div className="col-span-2"><span className="text-muted-foreground">Being:</span> {receipt.offering_categories?.name}</div>
+            <div><span className="text-muted-foreground">Method:</span> <span className="capitalize">{receipt.payment_method.replace("_", " ")}</span></div>
+            <div className="text-right"><span className="text-muted-foreground">Amount:</span> <span className="font-bold">{formatCurrency(receipt.amount)}</span></div>
+          </div>
+          <div className="mt-6 pt-4 border-t border-border text-xs text-muted-foreground text-center italic">
+            Thank you for your faithful stewardship. — Malachi 3:10
+          </div>
+          <div className="mt-6 flex justify-between text-xs">
+            <div>__________________<br/>Treasurer's signature</div>
+            <div className="text-right">__________________<br/>Giver's signature</div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Close</Button>
+          <Button onClick={() => printElement("receipt-print", `Receipt ${receipt.receipt_number}`)}>
+            <Printer className="h-4 w-4 mr-1" /> Print
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
