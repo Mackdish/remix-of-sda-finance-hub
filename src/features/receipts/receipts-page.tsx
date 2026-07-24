@@ -237,7 +237,7 @@ function NewReceiptDialog({
           description: form.description || null,
           recorded_by: uData.user?.id ?? null,
         })
-        .select("id,receipt_number,transaction_date,member_name,membership_number,amount,payment_method,offering_categories(name,fund_type)")
+        .select("id,receipt_number,transaction_date,member_name,membership_number,amount,payment_method,is_locked,reversed_at,offering_categories(name,fund_type)")
         .single();
       if (error) throw error;
       return data as unknown as ReceiptRow;
