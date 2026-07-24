@@ -57,6 +57,9 @@ export type Database = {
       }
       cash_statements: {
         Row: {
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
           church_id: string
           created_at: string
           created_by: string | null
@@ -66,14 +69,20 @@ export type Database = {
           is_finalized: boolean
           period_month: number | null
           period_year: number | null
+          rejection_reason: string | null
           reversal_reason: string | null
           reversed_at: string | null
           reversed_by: string | null
           statement_date: string
+          submitted_at: string | null
+          submitted_by: string | null
           totals: Json
           updated_at: string
         }
         Insert: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           church_id: string
           created_at?: string
           created_by?: string | null
@@ -83,14 +92,20 @@ export type Database = {
           is_finalized?: boolean
           period_month?: number | null
           period_year?: number | null
+          rejection_reason?: string | null
           reversal_reason?: string | null
           reversed_at?: string | null
           reversed_by?: string | null
           statement_date: string
+          submitted_at?: string | null
+          submitted_by?: string | null
           totals?: Json
           updated_at?: string
         }
         Update: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           church_id?: string
           created_at?: string
           created_by?: string | null
@@ -100,10 +115,13 @@ export type Database = {
           is_finalized?: boolean
           period_month?: number | null
           period_year?: number | null
+          rejection_reason?: string | null
           reversal_reason?: string | null
           reversed_at?: string | null
           reversed_by?: string | null
           statement_date?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
           totals?: Json
           updated_at?: string
         }
@@ -348,6 +366,8 @@ export type Database = {
       expenses: {
         Row: {
           amount: number
+          approval_status: string
+          approved_at: string | null
           approved_by: string | null
           attachment_url: string | null
           category_id: string | null
@@ -362,16 +382,21 @@ export type Database = {
           payment_method: Database["public"]["Enums"]["payment_method"]
           recorded_by: string | null
           reference_number: string | null
+          rejection_reason: string | null
           remarks: string | null
           reversal_reason: string | null
           reversed_at: string | null
           reversed_by: string | null
+          submitted_at: string | null
+          submitted_by: string | null
           transaction_date: string
           updated_at: string
           vendor: string | null
         }
         Insert: {
           amount: number
+          approval_status?: string
+          approved_at?: string | null
           approved_by?: string | null
           attachment_url?: string | null
           category_id?: string | null
@@ -386,16 +411,21 @@ export type Database = {
           payment_method?: Database["public"]["Enums"]["payment_method"]
           recorded_by?: string | null
           reference_number?: string | null
+          rejection_reason?: string | null
           remarks?: string | null
           reversal_reason?: string | null
           reversed_at?: string | null
           reversed_by?: string | null
+          submitted_at?: string | null
+          submitted_by?: string | null
           transaction_date?: string
           updated_at?: string
           vendor?: string | null
         }
         Update: {
           amount?: number
+          approval_status?: string
+          approved_at?: string | null
           approved_by?: string | null
           attachment_url?: string | null
           category_id?: string | null
@@ -410,10 +440,13 @@ export type Database = {
           payment_method?: Database["public"]["Enums"]["payment_method"]
           recorded_by?: string | null
           reference_number?: string | null
+          rejection_reason?: string | null
           remarks?: string | null
           reversal_reason?: string | null
           reversed_at?: string | null
           reversed_by?: string | null
+          submitted_at?: string | null
+          submitted_by?: string | null
           transaction_date?: string
           updated_at?: string
           vendor?: string | null
@@ -567,6 +600,9 @@ export type Database = {
       receipts: {
         Row: {
           amount: number
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
           church_id: string
           created_at: string
           department: string | null
@@ -584,15 +620,21 @@ export type Database = {
           receipt_number: string
           recorded_by: string | null
           reference_number: string | null
+          rejection_reason: string | null
           remarks: string | null
           reversal_reason: string | null
           reversed_at: string | null
           reversed_by: string | null
+          submitted_at: string | null
+          submitted_by: string | null
           transaction_date: string
           updated_at: string
         }
         Insert: {
           amount: number
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           church_id: string
           created_at?: string
           department?: string | null
@@ -610,15 +652,21 @@ export type Database = {
           receipt_number: string
           recorded_by?: string | null
           reference_number?: string | null
+          rejection_reason?: string | null
           remarks?: string | null
           reversal_reason?: string | null
           reversed_at?: string | null
           reversed_by?: string | null
+          submitted_at?: string | null
+          submitted_by?: string | null
           transaction_date?: string
           updated_at?: string
         }
         Update: {
           amount?: number
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           church_id?: string
           created_at?: string
           department?: string | null
@@ -636,10 +684,13 @@ export type Database = {
           receipt_number?: string
           recorded_by?: string | null
           reference_number?: string | null
+          rejection_reason?: string | null
           remarks?: string | null
           reversal_reason?: string | null
           reversed_at?: string | null
           reversed_by?: string | null
+          submitted_at?: string | null
+          submitted_by?: string | null
           transaction_date?: string
           updated_at?: string
         }
@@ -763,6 +814,9 @@ export type Database = {
       }
       weekly_reports: {
         Row: {
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
           church_id: string
           created_at: string
           created_by: string | null
@@ -773,12 +827,18 @@ export type Database = {
           is_finalized: boolean
           period_month: number
           period_year: number
+          rejection_reason: string | null
           reversal_reason: string | null
           reversed_at: string | null
           reversed_by: string | null
+          submitted_at: string | null
+          submitted_by: string | null
           updated_at: string
         }
         Insert: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           church_id: string
           created_at?: string
           created_by?: string | null
@@ -789,12 +849,18 @@ export type Database = {
           is_finalized?: boolean
           period_month: number
           period_year: number
+          rejection_reason?: string | null
           reversal_reason?: string | null
           reversed_at?: string | null
           reversed_by?: string | null
+          submitted_at?: string | null
+          submitted_by?: string | null
           updated_at?: string
         }
         Update: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           church_id?: string
           created_at?: string
           created_by?: string | null
@@ -805,9 +871,12 @@ export type Database = {
           is_finalized?: boolean
           period_month?: number
           period_year?: number
+          rejection_reason?: string | null
           reversal_reason?: string | null
           reversed_at?: string | null
           reversed_by?: string | null
+          submitted_at?: string | null
+          submitted_by?: string | null
           updated_at?: string
         }
         Relationships: [
