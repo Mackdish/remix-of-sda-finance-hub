@@ -13,12 +13,14 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/format";
 import { Plus, Search, Wallet } from "lucide-react";
+import { LockRowActions, LockStatusBadge } from "@/components/lock-actions";
 
 const PAY = ["cash", "mpesa", "bank_transfer", "cheque", "bank_deposit"] as const;
 type Cat = { id: string; name: string };
 type Row = {
   id: string; expense_number: string; transaction_date: string; description: string | null;
   vendor: string | null; amount: number; payment_method: string;
+  is_locked: boolean; reversed_at: string | null;
   expense_categories: { name: string } | null;
 };
 
@@ -43,7 +45,7 @@ export function ExpensesPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("expenses")
-        .select("id,expense_number,transaction_date,description,vendor,amount,payment_method,expense_categories(name)")
+        .select("id,expense_number,transaction_date,description,vendor,amount,payment_method,is_locked,reversed_at,expense_categories(name)")
         .eq("church_id", church!.id)
         .order("created_at", { ascending: false })
         .limit(200);
@@ -104,6 +106,8 @@ export function ExpensesPage() {
                     <th className="py-2 pr-4">Category</th>
                     <th className="py-2 pr-4">Method</th>
                     <th className="py-2 pr-4 text-right">Amount</th>
+                    <th className="py-2 pr-4">Status</th>
+                    <th className="py-2 pr-4"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -116,6 +120,18 @@ export function ExpensesPage() {
                       <td className="py-2 pr-4">{r.expense_categories?.name ?? "—"}</td>
                       <td className="py-2 pr-4 capitalize">{r.payment_method.replace("_", " ")}</td>
                       <td className="py-2 pr-4 text-right">{formatCurrency(r.amount)}</td>
+                      <td className="py-2 pr-4">
+                        <LockStatusBadge isLocked={r.is_locked} reversedAt={r.reversed_at} />
+                      </td>
+                      <td className="py-2 pr-4 text-right">
+                        <LockRowActions
+                          table="expenses"
+                          id={r.id}
+                          isLocked={r.is_locked}
+                          reversedAt={r.reversed_at}
+                          invalidateKeys={["expenses", "dashboard"]}
+                        />
+                      </td>
                     </tr>
                   ))}
                 </tbody>
