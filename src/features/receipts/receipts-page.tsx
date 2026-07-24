@@ -18,12 +18,14 @@ import { toast } from "sonner";
 import { formatCurrency } from "@/lib/format";
 import { Plus, Printer, Search, Receipt as ReceiptIcon } from "lucide-react";
 import { printElement } from "@/lib/print";
+import { LockRowActions, LockStatusBadge } from "@/components/lock-actions";
 
 type Category = { id: string; name: string; fund_type: "trust" | "local"; conference_split_pct: number };
 type Member = { id: string; full_name: string; membership_number: string | null; phone: string | null; department: string | null };
 type ReceiptRow = {
   id: string; receipt_number: string; transaction_date: string; member_name: string | null;
   membership_number: string | null; amount: number; payment_method: string;
+  is_locked: boolean; reversed_at: string | null;
   offering_categories: { name: string; fund_type: string } | null;
 };
 
@@ -68,7 +70,7 @@ export function ReceiptsPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("receipts")
-        .select("id,receipt_number,transaction_date,member_name,membership_number,amount,payment_method,offering_categories(name,fund_type)")
+        .select("id,receipt_number,transaction_date,member_name,membership_number,amount,payment_method,is_locked,reversed_at,offering_categories(name,fund_type)")
         .eq("church_id", church!.id)
         .order("created_at", { ascending: false })
         .limit(200);
@@ -141,6 +143,7 @@ export function ReceiptsPage() {
                     <th className="py-2 pr-4">Category</th>
                     <th className="py-2 pr-4">Method</th>
                     <th className="py-2 pr-4 text-right">Amount</th>
+                    <th className="py-2 pr-4">Status</th>
                     <th className="py-2 pr-4"></th>
                   </tr>
                 </thead>
@@ -153,10 +156,22 @@ export function ReceiptsPage() {
                       <td className="py-2 pr-4">{r.offering_categories?.name ?? "—"}</td>
                       <td className="py-2 pr-4 capitalize">{r.payment_method.replace("_", " ")}</td>
                       <td className="py-2 pr-4 text-right">{formatCurrency(r.amount)}</td>
+                      <td className="py-2 pr-4">
+                        <LockStatusBadge isLocked={r.is_locked} reversedAt={r.reversed_at} />
+                      </td>
                       <td className="py-2 pr-4 text-right">
-                        <Button size="sm" variant="ghost" onClick={() => setPrinting(r)}>
-                          <Printer className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <LockRowActions
+                            table="receipts"
+                            id={r.id}
+                            isLocked={r.is_locked}
+                            reversedAt={r.reversed_at}
+                            invalidateKeys={["receipts", "dashboard"]}
+                          />
+                          <Button size="sm" variant="ghost" onClick={() => setPrinting(r)}>
+                            <Printer className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -222,7 +237,7 @@ function NewReceiptDialog({
           description: form.description || null,
           recorded_by: uData.user?.id ?? null,
         })
-        .select("id,receipt_number,transaction_date,member_name,membership_number,amount,payment_method,offering_categories(name,fund_type)")
+        .select("id,receipt_number,transaction_date,member_name,membership_number,amount,payment_method,is_locked,reversed_at,offering_categories(name,fund_type)")
         .single();
       if (error) throw error;
       return data as unknown as ReceiptRow;

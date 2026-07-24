@@ -49,3 +49,7 @@ export function useUserRoles() {
 export function hasAnyRole(roles: AppRole[], allowed: AppRole[]): boolean {
   return roles.some((r) => allowed.includes(r));
 }
+
+export function isAdmin(roles: AppRole[] | undefined): boolean {
+  return !!roles?.includes("admin");
+}

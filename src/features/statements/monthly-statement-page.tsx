@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { formatCurrency } from "@/lib/format";
 import { printElement } from "@/lib/print";
 import { Printer } from "lucide-react";
+import { PeriodFinalize } from "@/components/period-finalize";
 
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
@@ -69,6 +70,18 @@ export function MonthlyStatementPage() {
           <div><Label>Year</Label><Input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} /></div>
         </CardContent>
       </Card>
+
+      <PeriodFinalize
+        table="cash_statements"
+        churchId={church.id}
+        year={year}
+        month={month}
+        snapshot={{
+          income: stats.income, spend: stats.spend, conf: stats.conf, local: stats.local,
+          net: stats.net, byCat: stats.byCat, byExp: stats.byExp,
+        }}
+        label="Monthly statement"
+      />
       <div id="monthly-statement" className="bg-card border border-border rounded-md p-6 space-y-4">
         <div className="text-center border-b border-border pb-3">
           <div className="font-bold text-primary text-lg">{church.name}</div>

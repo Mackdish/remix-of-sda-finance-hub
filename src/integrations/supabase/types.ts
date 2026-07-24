@@ -60,10 +60,15 @@ export type Database = {
           church_id: string
           created_at: string
           created_by: string | null
+          finalized_at: string | null
+          finalized_by: string | null
           id: string
           is_finalized: boolean
           period_month: number | null
           period_year: number | null
+          reversal_reason: string | null
+          reversed_at: string | null
+          reversed_by: string | null
           statement_date: string
           totals: Json
           updated_at: string
@@ -72,10 +77,15 @@ export type Database = {
           church_id: string
           created_at?: string
           created_by?: string | null
+          finalized_at?: string | null
+          finalized_by?: string | null
           id?: string
           is_finalized?: boolean
           period_month?: number | null
           period_year?: number | null
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           statement_date: string
           totals?: Json
           updated_at?: string
@@ -84,10 +94,15 @@ export type Database = {
           church_id?: string
           created_at?: string
           created_by?: string | null
+          finalized_at?: string | null
+          finalized_by?: string | null
           id?: string
           is_finalized?: boolean
           period_month?: number | null
           period_year?: number | null
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           statement_date?: string
           totals?: Json
           updated_at?: string
@@ -341,10 +356,16 @@ export type Database = {
           description: string | null
           expense_number: string
           id: string
+          is_locked: boolean
+          locked_at: string | null
+          locked_by: string | null
           payment_method: Database["public"]["Enums"]["payment_method"]
           recorded_by: string | null
           reference_number: string | null
           remarks: string | null
+          reversal_reason: string | null
+          reversed_at: string | null
+          reversed_by: string | null
           transaction_date: string
           updated_at: string
           vendor: string | null
@@ -359,10 +380,16 @@ export type Database = {
           description?: string | null
           expense_number: string
           id?: string
+          is_locked?: boolean
+          locked_at?: string | null
+          locked_by?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"]
           recorded_by?: string | null
           reference_number?: string | null
           remarks?: string | null
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           transaction_date?: string
           updated_at?: string
           vendor?: string | null
@@ -377,10 +404,16 @@ export type Database = {
           description?: string | null
           expense_number?: string
           id?: string
+          is_locked?: boolean
+          locked_at?: string | null
+          locked_by?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"]
           recorded_by?: string | null
           reference_number?: string | null
           remarks?: string | null
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           transaction_date?: string
           updated_at?: string
           vendor?: string | null
@@ -540,6 +573,8 @@ export type Database = {
           description: string | null
           id: string
           is_locked: boolean
+          locked_at: string | null
+          locked_by: string | null
           member_id: string | null
           member_name: string | null
           membership_number: string | null
@@ -550,6 +585,9 @@ export type Database = {
           recorded_by: string | null
           reference_number: string | null
           remarks: string | null
+          reversal_reason: string | null
+          reversed_at: string | null
+          reversed_by: string | null
           transaction_date: string
           updated_at: string
         }
@@ -561,6 +599,8 @@ export type Database = {
           description?: string | null
           id?: string
           is_locked?: boolean
+          locked_at?: string | null
+          locked_by?: string | null
           member_id?: string | null
           member_name?: string | null
           membership_number?: string | null
@@ -571,6 +611,9 @@ export type Database = {
           recorded_by?: string | null
           reference_number?: string | null
           remarks?: string | null
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           transaction_date?: string
           updated_at?: string
         }
@@ -582,6 +625,8 @@ export type Database = {
           description?: string | null
           id?: string
           is_locked?: boolean
+          locked_at?: string | null
+          locked_by?: string | null
           member_id?: string | null
           member_name?: string | null
           membership_number?: string | null
@@ -592,6 +637,9 @@ export type Database = {
           recorded_by?: string | null
           reference_number?: string | null
           remarks?: string | null
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           transaction_date?: string
           updated_at?: string
         }
@@ -719,10 +767,15 @@ export type Database = {
           created_at: string
           created_by: string | null
           data: Json
+          finalized_at: string | null
+          finalized_by: string | null
           id: string
           is_finalized: boolean
           period_month: number
           period_year: number
+          reversal_reason: string | null
+          reversed_at: string | null
+          reversed_by: string | null
           updated_at: string
         }
         Insert: {
@@ -730,10 +783,15 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           data?: Json
+          finalized_at?: string | null
+          finalized_by?: string | null
           id?: string
           is_finalized?: boolean
           period_month: number
           period_year: number
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           updated_at?: string
         }
         Update: {
@@ -741,10 +799,15 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           data?: Json
+          finalized_at?: string | null
+          finalized_by?: string | null
           id?: string
           is_finalized?: boolean
           period_month?: number
           period_year?: number
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           updated_at?: string
         }
         Relationships: [

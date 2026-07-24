@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { formatCurrency } from "@/lib/format";
 import { printElement } from "@/lib/print";
 import { Printer } from "lucide-react";
+import { PeriodFinalize } from "@/components/period-finalize";
 
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
@@ -96,6 +97,15 @@ export function WeeklyReportPage() {
           <div><Label>Year</Label><Input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} /></div>
         </CardContent>
       </Card>
+
+      <PeriodFinalize
+        table="weekly_reports"
+        churchId={church.id}
+        year={year}
+        month={month}
+        snapshot={{ grid: table.grid, weekTotals: table.weekTotals, grand: table.grand }}
+        label="Weekly report"
+      />
 
       <div id="weekly-report" className="bg-card border border-border rounded-md p-6">
         <div className="text-center border-b border-border pb-3 mb-3">
