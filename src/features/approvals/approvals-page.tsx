@@ -77,10 +77,10 @@ export function ApprovalsPage() {
     };
     if (isPeriod) { patch.is_finalized = true; patch.finalized_at = now; patch.finalized_by = u.user?.id ?? null; }
     else { patch.is_locked = true; patch.locked_at = now; patch.locked_by = u.user?.id ?? null; }
-    const { error } = await supabase.from(row.kind === "cash_statement" ? "cash_statements"
+    const table = row.kind === "cash_statement" ? "cash_statements"
       : row.kind === "weekly_report" ? "weekly_reports"
-      : row.kind === "receipt" ? "receipts" : "expenses")
-      .update(patch).eq("id", row.id);
+      : row.kind === "receipt" ? "receipts" : "expenses";
+    const { error } = await (supabase.from(table) as any).update(patch).eq("id", row.id);
     if (error) { toast.error(error.message); return; }
     toast.success("Approved");
     qc.invalidateQueries({ queryKey: ["approvals-queue"] });
