@@ -21,6 +21,8 @@ type Row = {
   id: string; expense_number: string; transaction_date: string; description: string | null;
   vendor: string | null; amount: number; payment_method: string;
   is_locked: boolean; reversed_at: string | null;
+  approval_status: "draft" | "pending" | "approved" | "rejected";
+  rejection_reason: string | null;
   expense_categories: { name: string } | null;
 };
 
@@ -45,7 +47,7 @@ export function ExpensesPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("expenses")
-        .select("id,expense_number,transaction_date,description,vendor,amount,payment_method,is_locked,reversed_at,expense_categories(name)")
+        .select("id,expense_number,transaction_date,description,vendor,amount,payment_method,is_locked,reversed_at,approval_status,rejection_reason,expense_categories(name)")
         .eq("church_id", church!.id)
         .order("created_at", { ascending: false })
         .limit(200);
@@ -121,7 +123,7 @@ export function ExpensesPage() {
                       <td className="py-2 pr-4 capitalize">{r.payment_method.replace("_", " ")}</td>
                       <td className="py-2 pr-4 text-right">{formatCurrency(r.amount)}</td>
                       <td className="py-2 pr-4">
-                        <LockStatusBadge isLocked={r.is_locked} reversedAt={r.reversed_at} />
+                        <LockStatusBadge isLocked={r.is_locked} reversedAt={r.reversed_at} approvalStatus={r.approval_status} />
                       </td>
                       <td className="py-2 pr-4 text-right">
                         <LockRowActions
@@ -129,6 +131,8 @@ export function ExpensesPage() {
                           id={r.id}
                           isLocked={r.is_locked}
                           reversedAt={r.reversed_at}
+                          approvalStatus={r.approval_status}
+                          rejectionReason={r.rejection_reason}
                           invalidateKeys={["expenses", "dashboard"]}
                         />
                       </td>
