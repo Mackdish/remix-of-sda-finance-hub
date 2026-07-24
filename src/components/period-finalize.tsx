@@ -68,10 +68,10 @@ export function PeriodFinalize({
       else base.totals = snapshot;
       if (table === "cash_statements") base.statement_date = new Date(year, month + 1, 0).toISOString().slice(0, 10);
       if (row?.id) {
-        const { error } = await supabase.from(table).update(base).eq("id", row.id);
+        const { error } = await supabase.from(table).update(base as any).eq("id", row.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from(table).insert(base as never);
+        const { error } = await supabase.from(table).insert(base as any);
         if (error) throw error;
       }
     },
