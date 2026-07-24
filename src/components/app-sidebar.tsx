@@ -30,6 +30,7 @@ import {
   ShieldCheck,
   LogOut,
   ChurchIcon,
+  ClipboardCheck,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,7 @@ const nav = {
   ],
   Administration: [
     { title: "Church Profile", url: "/church-profile", icon: Building2 },
+    { title: "Approvals", url: "/approvals", icon: ClipboardCheck },
     { title: "Administration", url: "/admin", icon: Settings2 },
     { title: "Audit Trail", url: "/audit", icon: ShieldCheck },
   ],

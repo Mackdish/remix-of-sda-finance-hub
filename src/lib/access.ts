@@ -18,6 +18,7 @@ export const ROUTE_ACCESS: Record<string, AppRole[]> = {
   "/reports": ["admin", "treasurer", "auditor"],
   "/church-profile": ["admin", "treasurer"],
   "/admin": ["admin"],
+  "/approvals": ["admin"],
   "/audit": ["admin", "auditor"],
 };
 
