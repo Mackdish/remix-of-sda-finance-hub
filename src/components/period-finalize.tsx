@@ -9,7 +9,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { CheckCircle2, Lock, Undo2, AlertTriangle } from "lucide-react";
+import { CheckCircle2, Lock, Undo2, AlertTriangle, Send, XCircle, Clock } from "lucide-react";
 import { useUserRoles, isAdmin, hasAnyRole } from "@/lib/access";
 
 type PeriodTable = "weekly_reports" | "cash_statements";
@@ -27,8 +27,9 @@ export function PeriodFinalize({
   const qc = useQueryClient();
   const { data: roles } = useUserRoles();
   const admin = isAdmin(roles);
-  const canFinalize = hasAnyRole(roles ?? [], ["admin", "treasurer"]);
+  const canSubmit = hasAnyRole(roles ?? [], ["admin", "treasurer"]);
   const [reverseOpen, setReverseOpen] = useState(false);
+  const [rejectOpen, setRejectOpen] = useState(false);
   const [reason, setReason] = useState("");
 
   const queryKey = ["period-finalize", table, churchId, year, month] as const;
@@ -38,7 +39,7 @@ export function PeriodFinalize({
     queryFn: async () => {
       const { data } = await supabase
         .from(table)
-        .select("id,is_finalized,finalized_at,finalized_by,reversed_at,reversed_by,reversal_reason")
+        .select("id,is_finalized,finalized_at,finalized_by,reversed_at,reversed_by,reversal_reason,approval_status,rejection_reason,submitted_at,approved_at")
         .eq("church_id", churchId)
         .eq("period_year", year)
         .eq("period_month", month)
@@ -47,21 +48,25 @@ export function PeriodFinalize({
         | {
             id: string; is_finalized: boolean; finalized_at: string | null;
             reversed_at: string | null; reversal_reason: string | null;
+            approval_status: "draft" | "pending" | "approved" | "rejected";
+            rejection_reason: string | null;
+            submitted_at: string | null; approved_at: string | null;
           }
         | null;
     },
   });
 
-  const finalize = useMutation({
+  const submit = useMutation({
     mutationFn: async () => {
       const { data: u } = await supabase.auth.getUser();
       const base: Record<string, unknown> = {
         church_id: churchId,
         period_year: year,
         period_month: month,
-        is_finalized: true,
-        finalized_at: new Date().toISOString(),
-        finalized_by: u.user?.id ?? null,
+        approval_status: "pending",
+        submitted_at: new Date().toISOString(),
+        submitted_by: u.user?.id ?? null,
+        rejection_reason: null,
         created_by: u.user?.id ?? null,
       };
       if (table === "weekly_reports") base.data = snapshot;
@@ -75,8 +80,43 @@ export function PeriodFinalize({
         if (error) throw error;
       }
     },
-    onSuccess: () => { toast.success(`${label} finalized`); qc.invalidateQueries({ queryKey }); },
-    onError: (e: any) => toast.error(e.message ?? "Unable to finalize"),
+    onSuccess: () => { toast.success(`${label} submitted for approval`); qc.invalidateQueries({ queryKey }); },
+    onError: (e: any) => toast.error(e.message ?? "Unable to submit"),
+  });
+
+  const approve = useMutation({
+    mutationFn: async () => {
+      if (!row) return;
+      const { data: u } = await supabase.auth.getUser();
+      const { error } = await supabase.from(table).update({
+        approval_status: "approved",
+        approved_at: new Date().toISOString(),
+        approved_by: u.user?.id ?? null,
+        is_finalized: true,
+        finalized_at: new Date().toISOString(),
+        finalized_by: u.user?.id ?? null,
+      }).eq("id", row.id);
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success(`${label} approved and locked`); qc.invalidateQueries({ queryKey }); },
+    onError: (e: any) => toast.error(e.message ?? "Unable to approve"),
+  });
+
+  const reject = useMutation({
+    mutationFn: async () => {
+      if (!row) return;
+      if (!reason.trim()) throw new Error("Please provide a rejection reason");
+      const { error } = await supabase.from(table).update({
+        approval_status: "rejected",
+        rejection_reason: reason.trim(),
+      }).eq("id", row.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Rejected — treasurer can resubmit");
+      setRejectOpen(false); setReason(""); qc.invalidateQueries({ queryKey });
+    },
+    onError: (e: any) => toast.error(e.message ?? "Unable to reject"),
   });
 
   const reverse = useMutation({
@@ -101,6 +141,8 @@ export function PeriodFinalize({
 
   const reversed = !!row?.reversed_at;
   const finalized = !!row?.is_finalized && !reversed;
+  const pending = row?.approval_status === "pending" && !finalized && !reversed;
+  const rejected = row?.approval_status === "rejected" && !finalized && !reversed;
 
   return (
     <Card className="no-print">
@@ -115,7 +157,15 @@ export function PeriodFinalize({
               </span>
             ) : finalized ? (
               <span className="text-primary inline-flex items-center gap-1">
-                <Lock className="h-3 w-3" /> Finalized on {new Date(row!.finalized_at!).toLocaleDateString()}
+                <Lock className="h-3 w-3" /> Approved & locked on {new Date(row!.finalized_at!).toLocaleDateString()}
+              </span>
+            ) : pending ? (
+              <span className="text-amber-600 dark:text-amber-400 inline-flex items-center gap-1">
+                <Clock className="h-3 w-3" /> Pending admin approval
+              </span>
+            ) : rejected ? (
+              <span className="text-destructive inline-flex items-center gap-1">
+                <XCircle className="h-3 w-3" /> Rejected{row?.rejection_reason ? ` — ${row.rejection_reason}` : ""}
               </span>
             ) : (
               <span>Draft — not yet submitted</span>
@@ -123,10 +173,20 @@ export function PeriodFinalize({
           </div>
         </div>
         <div className="flex gap-2">
-          {!finalized && !reversed && canFinalize && (
-            <Button onClick={() => finalize.mutate()} disabled={finalize.isPending}>
-              <CheckCircle2 className="h-4 w-4 mr-1" /> Finalize
+          {!finalized && !reversed && !pending && canSubmit && (
+            <Button onClick={() => submit.mutate()} disabled={submit.isPending}>
+              <Send className="h-4 w-4 mr-1" /> {rejected ? "Resubmit" : "Submit for approval"}
             </Button>
+          )}
+          {pending && admin && (
+            <>
+              <Button onClick={() => approve.mutate()} disabled={approve.isPending}>
+                <CheckCircle2 className="h-4 w-4 mr-1" /> Approve
+              </Button>
+              <Button variant="destructive" onClick={() => setRejectOpen(true)}>
+                <XCircle className="h-4 w-4 mr-1" /> Reject
+              </Button>
+            </>
           )}
           {finalized && admin && (
             <Button variant="destructive" onClick={() => setReverseOpen(true)}>
@@ -134,6 +194,22 @@ export function PeriodFinalize({
             </Button>
           )}
         </div>
+        <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Reject {label.toLowerCase()}</DialogTitle></DialogHeader>
+            <div className="space-y-2 text-sm">
+              <p className="text-muted-foreground">The treasurer will be able to edit and resubmit.</p>
+              <Label>Reason</Label>
+              <Textarea rows={3} value={reason} onChange={(e) => setReason(e.target.value)} />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setRejectOpen(false)}>Cancel</Button>
+              <Button variant="destructive" onClick={() => reject.mutate()} disabled={reject.isPending}>
+                {reject.isPending ? "Rejecting…" : "Confirm rejection"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         <Dialog open={reverseOpen} onOpenChange={setReverseOpen}>
           <DialogContent>
             <DialogHeader><DialogTitle>Reverse finalized {label.toLowerCase()}</DialogTitle></DialogHeader>
