@@ -26,6 +26,8 @@ type ReceiptRow = {
   id: string; receipt_number: string; transaction_date: string; member_name: string | null;
   membership_number: string | null; amount: number; payment_method: string;
   is_locked: boolean; reversed_at: string | null;
+  approval_status: "draft" | "pending" | "approved" | "rejected";
+  rejection_reason: string | null;
   offering_categories: { name: string; fund_type: string } | null;
 };
 
@@ -70,7 +72,7 @@ export function ReceiptsPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("receipts")
-        .select("id,receipt_number,transaction_date,member_name,membership_number,amount,payment_method,is_locked,reversed_at,offering_categories(name,fund_type)")
+        .select("id,receipt_number,transaction_date,member_name,membership_number,amount,payment_method,is_locked,reversed_at,approval_status,rejection_reason,offering_categories(name,fund_type)")
         .eq("church_id", church!.id)
         .order("created_at", { ascending: false })
         .limit(200);
@@ -157,7 +159,7 @@ export function ReceiptsPage() {
                       <td className="py-2 pr-4 capitalize">{r.payment_method.replace("_", " ")}</td>
                       <td className="py-2 pr-4 text-right">{formatCurrency(r.amount)}</td>
                       <td className="py-2 pr-4">
-                        <LockStatusBadge isLocked={r.is_locked} reversedAt={r.reversed_at} />
+                        <LockStatusBadge isLocked={r.is_locked} reversedAt={r.reversed_at} approvalStatus={r.approval_status} />
                       </td>
                       <td className="py-2 pr-4 text-right">
                         <div className="flex items-center justify-end gap-1">
@@ -166,6 +168,8 @@ export function ReceiptsPage() {
                             id={r.id}
                             isLocked={r.is_locked}
                             reversedAt={r.reversed_at}
+                            approvalStatus={r.approval_status}
+                            rejectionReason={r.rejection_reason}
                             invalidateKeys={["receipts", "dashboard"]}
                           />
                           <Button size="sm" variant="ghost" onClick={() => setPrinting(r)}>
