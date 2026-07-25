@@ -43,8 +43,16 @@ export function MonthlyStatementPage() {
     const spend = ex.reduce((s, x) => s + Number(x.amount), 0);
     const conf = r.reduce((s, x) => s + Number(x.amount) * Number(x.offering_categories?.conference_split_pct ?? 0) / 100, 0);
     const local = income - conf;
-    const byCat = new Map<string, number>();
-    r.forEach((x) => byCat.set(x.offering_categories?.name ?? "Other", (byCat.get(x.offering_categories?.name ?? "Other") ?? 0) + Number(x.amount)));
+    const byCat = new Map<string, { total: number; conf: number; local: number; pct: number }>();
+    r.forEach((x) => {
+      const name = x.offering_categories?.name ?? "Other";
+      const pct = Number(x.offering_categories?.conference_split_pct ?? 0);
+      const amt = Number(x.amount);
+      const cShare = amt * pct / 100;
+      const cur = byCat.get(name) ?? { total: 0, conf: 0, local: 0, pct };
+      cur.total += amt; cur.conf += cShare; cur.local += amt - cShare; cur.pct = pct;
+      byCat.set(name, cur);
+    });
     const byExp = new Map<string, number>();
     ex.forEach((x) => byExp.set(x.expense_categories?.name ?? "Other", (byExp.get(x.expense_categories?.name ?? "Other") ?? 0) + Number(x.amount)));
     return { income, spend, conf, local, byCat: Array.from(byCat.entries()), byExp: Array.from(byExp.entries()), net: income - spend };
@@ -86,19 +94,43 @@ export function MonthlyStatementPage() {
         <div className="text-center border-b border-border pb-3">
           <div className="font-bold text-primary text-lg">{church.name}</div>
           <div className="font-semibold mt-1">MONTHLY CASH STATEMENT — {MONTHS[month]} {year}</div>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <div className="font-semibold mb-2">Income by category</div>
-            <table className="w-full text-sm">
-              <tbody>
-                {stats.byCat.length === 0 && <tr><td className="py-2 text-muted-foreground">No income.</td></tr>}
-                {stats.byCat.map(([n, v]) => <tr key={n} className="border-t border-border"><td className="py-1">{n}</td><td className="text-right">{formatCurrency(v)}</td></tr>)}
-                <tr className="border-t-2 border-primary font-semibold"><td className="py-2">Total income</td><td className="text-right">{formatCurrency(stats.income)}</td></tr>
-              </tbody>
-            </table>
+          <div className="text-[11px] italic text-muted-foreground mt-1">
+            Splits applied — Tithe 100% Conference · Combined Offering 50/50 · First Fruit 50/50 · All others 100% Local
           </div>
-          <div>
+        </div>
+        <div>
+          <div className="font-semibold mb-2">Income by category</div>
+          <table className="w-full text-sm">
+            <thead className="text-xs text-muted-foreground">
+              <tr className="border-b border-border">
+                <th className="py-1 text-left">Category</th>
+                <th className="py-1 text-right">Split</th>
+                <th className="py-1 text-right">Total</th>
+                <th className="py-1 text-right">Conference</th>
+                <th className="py-1 text-right">Local</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stats.byCat.length === 0 && <tr><td className="py-2 text-muted-foreground" colSpan={5}>No income.</td></tr>}
+              {stats.byCat.map(([n, v]) => (
+                <tr key={n} className="border-t border-border">
+                  <td className="py-1">{n}</td>
+                  <td className="py-1 text-right text-xs text-muted-foreground">{v.pct}% / {100 - v.pct}%</td>
+                  <td className="py-1 text-right">{formatCurrency(v.total)}</td>
+                  <td className="py-1 text-right">{formatCurrency(v.conf)}</td>
+                  <td className="py-1 text-right">{formatCurrency(v.local)}</td>
+                </tr>
+              ))}
+              <tr className="border-t-2 border-primary font-semibold">
+                <td className="py-2" colSpan={2}>Total income</td>
+                <td className="py-2 text-right">{formatCurrency(stats.income)}</td>
+                <td className="py-2 text-right text-primary">{formatCurrency(stats.conf)}</td>
+                <td className="py-2 text-right">{formatCurrency(stats.local)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
             <div className="font-semibold mb-2">Expenses by category</div>
             <table className="w-full text-sm">
               <tbody>
@@ -107,7 +139,6 @@ export function MonthlyStatementPage() {
                 <tr className="border-t-2 border-primary font-semibold"><td className="py-2">Total expenses</td><td className="text-right">{formatCurrency(stats.spend)}</td></tr>
               </tbody>
             </table>
-          </div>
         </div>
         <div className="grid grid-cols-3 gap-4 border-t border-border pt-4 text-sm">
           <div><div className="text-xs text-muted-foreground">Conference share</div><div className="font-semibold text-primary">{formatCurrency(stats.conf)}</div></div>
