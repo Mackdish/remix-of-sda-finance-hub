@@ -69,14 +69,11 @@ export function ApprovalsPage() {
   async function approve(row: PendingRow) {
     const { data: u } = await supabase.auth.getUser();
     const now = new Date().toISOString();
-    const isPeriod = row.kind === "cash_statement" || row.kind === "weekly_report";
     const patch: Record<string, unknown> = {
       approval_status: "approved",
       approved_at: now,
       approved_by: u.user?.id ?? null,
     };
-    if (isPeriod) { patch.is_finalized = true; patch.finalized_at = now; patch.finalized_by = u.user?.id ?? null; }
-    else { patch.is_locked = true; patch.locked_at = now; patch.locked_by = u.user?.id ?? null; }
     const table = row.kind === "cash_statement" ? "cash_statements"
       : row.kind === "weekly_report" ? "weekly_reports"
       : row.kind === "receipt" ? "receipts" : "expenses";
