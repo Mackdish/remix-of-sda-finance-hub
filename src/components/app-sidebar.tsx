@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import sdaLogo from "@/assets/sda-logo.png";
 import {
   Sidebar,
   SidebarContent,
@@ -93,9 +94,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-1">
-          <div className="h-8 w-8 rounded-md bg-gold text-gold-foreground grid place-items-center shrink-0">
-            <ChurchIcon className="h-4 w-4" />
-          </div>
+          <img src={sdaLogo} alt="Seventh-day Adventist Church logo" className="h-9 w-9 shrink-0 object-contain" width={36} height={36} />
           {!collapsed && (
             <div className="min-w-0">
               <div className="text-sm font-semibold truncate text-sidebar-foreground">SDA Treasurer</div>
