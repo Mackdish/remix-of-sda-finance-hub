@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ChurchIcon } from "lucide-react";
+import sdaLogo from "@/assets/sda-logo.png";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -74,9 +74,7 @@ function AuthPage() {
     <div className="min-h-screen grid md:grid-cols-2 bg-background">
       <div className="hidden md:flex flex-col justify-between p-10 bg-sidebar text-sidebar-foreground">
         <Link to="/" className="flex items-center gap-2 font-semibold">
-          <div className="h-9 w-9 rounded-md bg-gold text-gold-foreground grid place-items-center">
-            <ChurchIcon className="h-5 w-5" />
-          </div>
+          <img src={sdaLogo} alt="Seventh-day Adventist Church logo" className="h-10 w-10 object-contain" width={40} height={40} />
           SDA Treasurer
         </Link>
         <div>

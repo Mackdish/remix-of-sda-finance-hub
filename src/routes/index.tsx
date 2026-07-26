@@ -2,7 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ChurchIcon, ShieldCheck, Wallet, BarChart3, FileText, ArrowRight } from "lucide-react";
+import { ShieldCheck, Wallet, BarChart3, FileText, ArrowRight } from "lucide-react";
+import sdaLogo from "@/assets/sda-logo.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -41,9 +42,7 @@ function Landing() {
       <header className="border-b border-border bg-sidebar text-sidebar-foreground">
         <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2 font-semibold">
-            <div className="h-9 w-9 rounded-md bg-gold text-gold-foreground grid place-items-center">
-              <ChurchIcon className="h-5 w-5" />
-            </div>
+            <img src={sdaLogo} alt="Seventh-day Adventist Church logo" className="h-10 w-10 object-contain" width={40} height={40} />
             <span>SDA Treasurer</span>
           </div>
           <div className="flex gap-2">
