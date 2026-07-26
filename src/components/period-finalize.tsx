@@ -9,7 +9,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { CheckCircle2, Lock, Undo2, AlertTriangle, Send, XCircle, Clock } from "lucide-react";
+import { CheckCircle2, Send, XCircle, Clock } from "lucide-react";
 import { useUserRoles, isAdmin, hasAnyRole } from "@/lib/access";
 
 type PeriodTable = "weekly_reports" | "cash_statements";
@@ -28,7 +28,6 @@ export function PeriodFinalize({
   const { data: roles } = useUserRoles();
   const admin = isAdmin(roles);
   const canSubmit = hasAnyRole(roles ?? [], ["admin", "treasurer"]);
-  const [reverseOpen, setReverseOpen] = useState(false);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [reason, setReason] = useState("");
 
@@ -39,15 +38,14 @@ export function PeriodFinalize({
     queryFn: async () => {
       const { data } = await supabase
         .from(table)
-        .select("id,is_finalized,finalized_at,finalized_by,reversed_at,reversed_by,reversal_reason,approval_status,rejection_reason,submitted_at,approved_at")
+        .select("id,approval_status,rejection_reason,submitted_at,approved_at")
         .eq("church_id", churchId)
         .eq("period_year", year)
         .eq("period_month", month)
         .maybeSingle();
       return data as
         | {
-            id: string; is_finalized: boolean; finalized_at: string | null;
-            reversed_at: string | null; reversal_reason: string | null;
+            id: string;
             approval_status: "draft" | "pending" | "approved" | "rejected";
             rejection_reason: string | null;
             submitted_at: string | null; approved_at: string | null;
@@ -92,13 +90,10 @@ export function PeriodFinalize({
         approval_status: "approved",
         approved_at: new Date().toISOString(),
         approved_by: u.user?.id ?? null,
-        is_finalized: true,
-        finalized_at: new Date().toISOString(),
-        finalized_by: u.user?.id ?? null,
       }).eq("id", row.id);
       if (error) throw error;
     },
-    onSuccess: () => { toast.success(`${label} approved and locked`); qc.invalidateQueries({ queryKey }); },
+    onSuccess: () => { toast.success(`${label} approved`); qc.invalidateQueries({ queryKey }); },
     onError: (e: any) => toast.error(e.message ?? "Unable to approve"),
   });
 
@@ -119,30 +114,9 @@ export function PeriodFinalize({
     onError: (e: any) => toast.error(e.message ?? "Unable to reject"),
   });
 
-  const reverse = useMutation({
-    mutationFn: async () => {
-      if (!row) return;
-      if (!reason.trim()) throw new Error("Please provide a reason");
-      const { data: u } = await supabase.auth.getUser();
-      const { error } = await supabase.from(table).update({
-        reversed_at: new Date().toISOString(),
-        reversed_by: u.user?.id ?? null,
-        reversal_reason: reason.trim(),
-      }).eq("id", row.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Reversal recorded");
-      setReverseOpen(false); setReason("");
-      qc.invalidateQueries({ queryKey });
-    },
-    onError: (e: any) => toast.error(e.message ?? "Unable to reverse"),
-  });
-
-  const reversed = !!row?.reversed_at;
-  const finalized = !!row?.is_finalized && !reversed;
-  const pending = row?.approval_status === "pending" && !finalized && !reversed;
-  const rejected = row?.approval_status === "rejected" && !finalized && !reversed;
+  const approved = row?.approval_status === "approved";
+  const pending = row?.approval_status === "pending";
+  const rejected = row?.approval_status === "rejected";
 
   return (
     <Card className="no-print">
@@ -150,14 +124,9 @@ export function PeriodFinalize({
         <div className="text-sm">
           <div className="font-medium">{label} status</div>
           <div className="text-muted-foreground text-xs mt-0.5">
-            {reversed ? (
-              <span className="text-destructive inline-flex items-center gap-1">
-                <AlertTriangle className="h-3 w-3" /> Reversed
-                {row?.reversal_reason ? ` — ${row.reversal_reason}` : ""}
-              </span>
-            ) : finalized ? (
+            {approved ? (
               <span className="text-primary inline-flex items-center gap-1">
-                <Lock className="h-3 w-3" /> Approved & locked on {new Date(row!.finalized_at!).toLocaleDateString()}
+                <CheckCircle2 className="h-3 w-3" /> Approved on {row?.approved_at ? new Date(row.approved_at).toLocaleDateString() : ""}
               </span>
             ) : pending ? (
               <span className="text-amber-600 dark:text-amber-400 inline-flex items-center gap-1">
@@ -173,7 +142,7 @@ export function PeriodFinalize({
           </div>
         </div>
         <div className="flex gap-2">
-          {!finalized && !reversed && !pending && canSubmit && (
+          {!approved && !pending && canSubmit && (
             <Button onClick={() => submit.mutate()} disabled={submit.isPending}>
               <Send className="h-4 w-4 mr-1" /> {rejected ? "Resubmit" : "Submit for approval"}
             </Button>
@@ -188,11 +157,6 @@ export function PeriodFinalize({
               </Button>
             </>
           )}
-          {finalized && admin && (
-            <Button variant="destructive" onClick={() => setReverseOpen(true)}>
-              <Undo2 className="h-4 w-4 mr-1" /> Reverse
-            </Button>
-          )}
         </div>
         <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
           <DialogContent>
@@ -206,22 +170,6 @@ export function PeriodFinalize({
               <Button variant="outline" onClick={() => setRejectOpen(false)}>Cancel</Button>
               <Button variant="destructive" onClick={() => reject.mutate()} disabled={reject.isPending}>
                 {reject.isPending ? "Rejecting…" : "Confirm rejection"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        <Dialog open={reverseOpen} onOpenChange={setReverseOpen}>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Reverse finalized {label.toLowerCase()}</DialogTitle></DialogHeader>
-            <div className="space-y-2 text-sm">
-              <p className="text-muted-foreground">The record stays for audit but is marked reversed.</p>
-              <Label>Reason</Label>
-              <Textarea rows={3} value={reason} onChange={(e) => setReason(e.target.value)} />
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setReverseOpen(false)}>Cancel</Button>
-              <Button variant="destructive" onClick={() => reverse.mutate()} disabled={reverse.isPending}>
-                {reverse.isPending ? "Reversing…" : "Confirm reversal"}
               </Button>
             </DialogFooter>
           </DialogContent>
