@@ -8,8 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatCurrency } from "@/lib/format";
-import { Printer } from "lucide-react";
+import { Printer, FileDown, Eye } from "lucide-react";
 import { printElement } from "@/lib/print";
+import { SignaturePad } from "@/components/signature-pad";
+import { generateCashStatementPdf } from "@/lib/cash-statement-pdf";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
 
 type ReceiptRow = {
   amount: number;
@@ -33,6 +38,10 @@ export function CashStatementPage() {
   const { data: church } = useCurrentChurch();
   const [start, setStart] = useState(() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10); });
   const [end, setEnd] = useState(() => new Date().toISOString().slice(0, 10));
+  const [sigTreasurer, setSigTreasurer] = useState<string | null>(null);
+  const [sigElder, setSigElder] = useState<string | null>(null);
+  const [sigPastor, setSigPastor] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const { data } = useQuery({
     queryKey: ["cash-statement", church?.id, start, end],
@@ -93,18 +102,73 @@ export function CashStatementPage() {
 
   if (!church) return <><PageHeader title="Cash Statement" /><NoChurch /></>;
 
+  const buildPdf = () =>
+    generateCashStatementPdf({
+      churchName: church.name,
+      location: [church.address, church.city].filter(Boolean).join(", "),
+      start,
+      end,
+      categories: view.categories,
+      totalReceipts: view.totalReceipts,
+      conference: view.conference,
+      trust: view.trust,
+      local: view.local,
+      expenses: view.expenses.map((e) => ({
+        date: e.transaction_date,
+        description: e.description ?? "",
+        category: e.expense_categories?.name ?? "Other",
+        amount: Number(e.amount),
+      })),
+      totalExpenses: view.totalExpenses,
+      net: view.net,
+      signatures: {
+        treasurer: sigTreasurer,
+        elder: sigElder,
+        pastor: sigPastor,
+        treasurerName: church.treasurer_name,
+        elderName: church.elder_name,
+        pastorName: church.pastor_name,
+      },
+    });
+
+  const downloadPdf = () => {
+    const doc = buildPdf();
+    const safe = church.name.replace(/[^a-z0-9]+/gi, "_");
+    doc.save(`Cash_Statement_${safe}_${start}_to_${end}.pdf`);
+  };
+
+  const openPreview = () => setPreviewOpen(true);
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Cash Statement"
         description="SDA Church Treasurer's Cash Statement."
-        actions={<Button onClick={() => printElement("cash-statement", "Cash Statement")}><Printer className="h-4 w-4 mr-1" /> Print</Button>}
+        actions={
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={openPreview}><Eye className="h-4 w-4 mr-1" /> Print preview</Button>
+            <Button variant="outline" onClick={() => printElement("cash-statement", "Cash Statement")}><Printer className="h-4 w-4 mr-1" /> Print</Button>
+            <Button onClick={downloadPdf}><FileDown className="h-4 w-4 mr-1" /> Download PDF</Button>
+          </div>
+        }
       />
       <Card className="no-print">
         <CardHeader><CardTitle className="text-base">Period</CardTitle></CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2">
           <div><Label>Start date</Label><Input type="date" value={start} onChange={(e) => setStart(e.target.value)} /></div>
           <div><Label>End date</Label><Input type="date" value={end} onChange={(e) => setEnd(e.target.value)} /></div>
+        </CardContent>
+      </Card>
+
+      <Card className="no-print">
+        <CardHeader>
+          <CardTitle className="text-base">Signatures</CardTitle>
+          <p className="text-xs text-muted-foreground">Sign below — signatures will be embedded in the printed statement and PDF.</p>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-3">
+          <SignaturePad label={`Treasurer${church.treasurer_name ? ` — ${church.treasurer_name}` : ""}`} value={sigTreasurer} onChange={setSigTreasurer} />
+          <SignaturePad label={`Head Elder${church.elder_name ? ` — ${church.elder_name}` : ""}`} value={sigElder} onChange={setSigElder} />
+          <SignaturePad label={`Pastor${church.pastor_name ? ` — ${church.pastor_name}` : ""}`} value={sigPastor} onChange={setSigPastor} />
         </CardContent>
       </Card>
 
@@ -212,20 +276,36 @@ export function CashStatementPage() {
 
         {/* Signatures */}
         <div className="grid grid-cols-3 gap-6 pt-10 text-xs">
-          <div className="text-center">
-            <div className="border-t border-foreground pt-1">TREASURER</div>
-            <div className="text-muted-foreground mt-1">{church.treasurer_name ?? ""}</div>
-          </div>
-          <div className="text-center">
-            <div className="border-t border-foreground pt-1">HEAD ELDER</div>
-            <div className="text-muted-foreground mt-1">{church.elder_name ?? ""}</div>
-          </div>
-          <div className="text-center">
-            <div className="border-t border-foreground pt-1">PASTOR</div>
-            <div className="text-muted-foreground mt-1">{church.pastor_name ?? ""}</div>
-          </div>
+          {[
+            { img: sigTreasurer, role: "TREASURER", name: church.treasurer_name },
+            { img: sigElder, role: "HEAD ELDER", name: church.elder_name },
+            { img: sigPastor, role: "PASTOR", name: church.pastor_name },
+          ].map((s, i) => (
+            <div key={i} className="text-center">
+              <div className="h-10 flex items-end justify-center">
+                {s.img ? <img src={s.img} alt={s.role} className="h-10 object-contain" /> : null}
+              </div>
+              <div className="border-t border-foreground pt-1">{s.role}</div>
+              <div className="text-muted-foreground mt-1">{s.name ?? ""}</div>
+            </div>
+          ))}
         </div>
       </div>
+
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader><DialogTitle>Print preview</DialogTitle></DialogHeader>
+          <iframe
+            title="Cash statement PDF preview"
+            className="w-full h-[75vh] rounded border border-border bg-white"
+            src={previewOpen ? buildPdf().output("dataurlstring") : "about:blank"}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPreviewOpen(false)}>Close</Button>
+            <Button onClick={downloadPdf}><FileDown className="h-4 w-4 mr-1" /> Download PDF</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
