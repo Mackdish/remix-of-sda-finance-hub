@@ -8,10 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatCurrency } from "@/lib/format";
-import { Printer, FileDown, Eye } from "lucide-react";
+import { Printer, FileDown, Eye, FileSpreadsheet } from "lucide-react";
 import { printElement } from "@/lib/print";
 import { SignaturePad } from "@/components/signature-pad";
 import { generateCashStatementPdf } from "@/lib/cash-statement-pdf";
+import { generateCashStatementWorkbook } from "@/lib/cash-statement-xlsx";
+import * as XLSX from "xlsx";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -102,8 +104,7 @@ export function CashStatementPage() {
 
   if (!church) return <><PageHeader title="Cash Statement" /><NoChurch /></>;
 
-  const buildPdf = () =>
-    generateCashStatementPdf({
+  const pdfInput = () => ({
       churchName: church.name,
       location: [church.address, church.city].filter(Boolean).join(", "),
       start,
@@ -129,12 +130,20 @@ export function CashStatementPage() {
         elderName: church.elder_name,
         pastorName: church.pastor_name,
       },
-    });
+  });
+
+  const buildPdf = () => generateCashStatementPdf(pdfInput());
+
+  const fileBase = () =>
+    `Cash_Statement_${church.name.replace(/[^a-z0-9]+/gi, "_")}_${start}_to_${end}`;
 
   const downloadPdf = () => {
     const doc = buildPdf();
-    const safe = church.name.replace(/[^a-z0-9]+/gi, "_");
-    doc.save(`Cash_Statement_${safe}_${start}_to_${end}.pdf`);
+    doc.save(`${fileBase()}.pdf`);
+  };
+
+  const downloadExcel = () => {
+    XLSX.writeFile(generateCashStatementWorkbook(pdfInput()), `${fileBase()}.xlsx`);
   };
 
   const openPreview = () => setPreviewOpen(true);
@@ -148,6 +157,7 @@ export function CashStatementPage() {
           <div className="flex gap-2">
             <Button variant="outline" onClick={openPreview}><Eye className="h-4 w-4 mr-1" /> Print preview</Button>
             <Button variant="outline" onClick={() => printElement("cash-statement", "Cash Statement")}><Printer className="h-4 w-4 mr-1" /> Print</Button>
+            <Button variant="outline" onClick={downloadExcel}><FileSpreadsheet className="h-4 w-4 mr-1" /> Excel</Button>
             <Button onClick={downloadPdf}><FileDown className="h-4 w-4 mr-1" /> Download PDF</Button>
           </div>
         }
