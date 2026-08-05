@@ -122,6 +122,73 @@
           ]
         },
         "outputSchema": null
+      },
+      {
+        "name": "create_receipt",
+        "title": "Create receipt",
+        "description": "Record a new offering/tithe receipt for the signed-in treasurer's church. The fund type (trust or local) and the conference/local split come from the offering category. Created as a draft pending approval.",
+        "annotations": {
+          "readOnlyHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Offering category name or code, e.g. 'Tithe', 'Combined Offering', 'First Fruit'."
+            },
+            "amount": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Receipt amount in the church's currency."
+            },
+            "receipt_number": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Receipt number. Omit to auto-generate the next number."
+            },
+            "date": {
+              "type": "string",
+              "description": "Transaction date, YYYY-MM-DD. Defaults to today."
+            },
+            "fund": {
+              "type": "string",
+              "enum": [
+                "trust",
+                "local"
+              ],
+              "description": "Optional expected fund type; used to disambiguate categories with the same name."
+            },
+            "member_name": {
+              "type": "string",
+              "description": "Name of the member/giver."
+            },
+            "payment_method": {
+              "type": "string",
+              "enum": [
+                "cash",
+                "mpesa",
+                "bank_transfer",
+                "cheque",
+                "bank_deposit"
+              ],
+              "description": "Payment method (default cash)."
+            },
+            "description": {
+              "type": "string",
+              "description": "Optional note or description."
+            }
+          },
+          "required": [
+            "category",
+            "amount"
+          ]
+        },
+        "outputSchema": null
       }
     ]
   }
