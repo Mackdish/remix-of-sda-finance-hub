@@ -11,6 +11,9 @@ import { toast } from "sonner";
 import sdaLogo from "@/assets/sda-logo.png";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" && s.next.startsWith("/") && !s.next.startsWith("//") ? s.next : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Sign in — SDA Treasurer" },
@@ -24,16 +27,26 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
 
+  function afterAuth() {
+    if (next) {
+      window.location.href = next;
+      return;
+    }
+    navigate({ to: "/dashboard" });
+  }
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard" });
+      if (data.session) afterAuth();
     });
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate, next]);
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
@@ -42,7 +55,7 @@ function AuthPage() {
     setLoading(false);
     if (error) return toast.error(error.message);
     toast.success("Welcome back");
-    navigate({ to: "/dashboard" });
+    afterAuth();
   }
 
   async function handleSignUp(e: React.FormEvent) {
@@ -52,7 +65,7 @@ function AuthPage() {
       email,
       password,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: next ? `${window.location.origin}${next}` : window.location.origin,
         data: { full_name: fullName },
       },
     });
@@ -63,11 +76,11 @@ function AuthPage() {
 
   async function handleGoogle() {
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: next ? `${window.location.origin}${next}` : window.location.origin,
     });
     if (result.error) return toast.error("Google sign-in failed");
     if (result.redirected) return;
-    navigate({ to: "/dashboard" });
+    afterAuth();
   }
 
   return (
