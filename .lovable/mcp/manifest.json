@@ -1,0 +1,128 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.1",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://iiusykuxrwgvmjrdrdku.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "sda-finance-hub",
+      "version": "0.1.0",
+      "title": "SDA Finance Hub"
+    },
+    "tools": [
+      {
+        "name": "get_church_profile",
+        "title": "Get church profile",
+        "description": "Return the profile of the church the signed-in treasurer belongs to: name, code, contacts, officers and financial year start.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_receipts",
+        "title": "List receipts",
+        "description": "List offering and tithe receipts for the signed-in treasurer's church within an optional date range (YYYY-MM-DD).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "start_date": {
+              "type": "string",
+              "description": "Inclusive start date, YYYY-MM-DD."
+            },
+            "end_date": {
+              "type": "string",
+              "description": "Inclusive end date, YYYY-MM-DD."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991,
+              "description": "Maximum rows to return (default 50, max 200)."
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_expenses",
+        "title": "List expenses",
+        "description": "List church expenses for the signed-in treasurer's church, newest first, with an optional date range.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "start_date": {
+              "type": "string",
+              "description": "Inclusive start date, YYYY-MM-DD."
+            },
+            "end_date": {
+              "type": "string",
+              "description": "Inclusive end date, YYYY-MM-DD."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991,
+              "description": "Maximum rows to return (default 50, max 200)."
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "cash_summary",
+        "title": "Cash summary for a period",
+        "description": "Summarise receipts and expenses for a date range, splitting each offering category into the conference share and the local church share (tithe 100% conference, combined offering and first fruit 50/50, all others 100% local).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "start_date": {
+              "type": "string",
+              "description": "Inclusive start date, YYYY-MM-DD."
+            },
+            "end_date": {
+              "type": "string",
+              "description": "Inclusive end date, YYYY-MM-DD."
+            }
+          },
+          "required": [
+            "start_date",
+            "end_date"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
