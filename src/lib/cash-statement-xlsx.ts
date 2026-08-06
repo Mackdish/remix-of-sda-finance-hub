@@ -22,6 +22,7 @@ export function generateCashStatementWorkbook(input: CashStatementPdfInput): XLS
   rows.push(["Conference (Tithe & Combined Offering)", "", input.conference]);
   rows.push(["Trust Funds (Sabbath School, 13th Sabbath, Missions)", "", input.trust]);
   rows.push(["Local Church Funds", "", input.local]);
+  rows.push(["Camp Expense Fund", "", input.camp ?? 0]);
   rows.push([]);
 
   rows.push(["Part C — Expenses"]);
