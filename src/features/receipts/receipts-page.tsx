@@ -20,7 +20,8 @@ import { Plus, Printer, Search, Receipt as ReceiptIcon } from "lucide-react";
 import { printElement } from "@/lib/print";
 import { LockRowActions, LockStatusBadge } from "@/components/lock-actions";
 
-type Category = { id: string; name: string; fund_type: "trust" | "local"; conference_split_pct: number };
+type Category = { id: string; name: string; fund_type: "trust" | "local" | "camp"; conference_split_pct: number };
+type Department = { id: string; name: string };
 type Member = { id: string; full_name: string; membership_number: string | null; phone: string | null; department: string | null };
 type ReceiptRow = {
   id: string; receipt_number: string; transaction_date: string; member_name: string | null;
@@ -66,6 +67,20 @@ export function ReceiptsPage() {
     },
   });
 
+  const { data: departments = [] } = useQuery({
+    queryKey: ["departments", church?.id],
+    enabled: !!church,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("departments")
+        .select("id,name")
+        .eq("church_id", church!.id)
+        .eq("is_active", true)
+        .order("sort_order");
+      return (data ?? []) as Department[];
+    },
+  });
+
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["receipts", church?.id],
     enabled: !!church,
@@ -107,6 +122,7 @@ export function ReceiptsPage() {
               church={church}
               categories={cats}
               members={members}
+              departments={departments}
               onDone={(row) => {
                 setOpen(false);
                 qc.invalidateQueries({ queryKey: ["receipts"] });
