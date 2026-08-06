@@ -140,6 +140,7 @@ export type Database = {
           church_id: string
           created_at: string
           department: string | null
+          department_id: string | null
           email: string | null
           family_name: string | null
           full_name: string
@@ -154,6 +155,7 @@ export type Database = {
           church_id: string
           created_at?: string
           department?: string | null
+          department_id?: string | null
           email?: string | null
           family_name?: string | null
           full_name: string
@@ -168,6 +170,7 @@ export type Database = {
           church_id?: string
           created_at?: string
           department?: string | null
+          department_id?: string | null
           email?: string | null
           family_name?: string | null
           full_name?: string
@@ -184,6 +187,13 @@ export type Database = {
             columns: ["church_id"]
             isOneToOne: false
             referencedRelation: "churches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "church_members_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
             referencedColumns: ["id"]
           },
         ]
@@ -296,6 +306,50 @@ export type Database = {
         }
         Relationships: []
       }
+      departments: {
+        Row: {
+          church_id: string
+          code: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          church_id: string
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          church_id?: string
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "departments_church_id_fkey"
+            columns: ["church_id"]
+            isOneToOne: false
+            referencedRelation: "churches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       districts: {
         Row: {
           code: string | null
@@ -373,6 +427,7 @@ export type Database = {
           category_id: string | null
           church_id: string
           created_at: string
+          department_id: string | null
           description: string | null
           expense_number: string
           id: string
@@ -402,6 +457,7 @@ export type Database = {
           category_id?: string | null
           church_id: string
           created_at?: string
+          department_id?: string | null
           description?: string | null
           expense_number: string
           id?: string
@@ -431,6 +487,7 @@ export type Database = {
           category_id?: string | null
           church_id?: string
           created_at?: string
+          department_id?: string | null
           description?: string | null
           expense_number?: string
           id?: string
@@ -464,6 +521,13 @@ export type Database = {
             columns: ["church_id"]
             isOneToOne: false
             referencedRelation: "churches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
             referencedColumns: ["id"]
           },
         ]
@@ -606,6 +670,7 @@ export type Database = {
           church_id: string
           created_at: string
           department: string | null
+          department_id: string | null
           description: string | null
           id: string
           is_locked: boolean
@@ -638,6 +703,7 @@ export type Database = {
           church_id: string
           created_at?: string
           department?: string | null
+          department_id?: string | null
           description?: string | null
           id?: string
           is_locked?: boolean
@@ -670,6 +736,7 @@ export type Database = {
           church_id?: string
           created_at?: string
           department?: string | null
+          department_id?: string | null
           description?: string | null
           id?: string
           is_locked?: boolean
@@ -700,6 +767,13 @@ export type Database = {
             columns: ["church_id"]
             isOneToOne: false
             referencedRelation: "churches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "receipts_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
             referencedColumns: ["id"]
           },
           {
@@ -914,7 +988,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "treasurer" | "auditor"
-      fund_type: "trust" | "local"
+      fund_type: "trust" | "local" | "camp"
       payment_method:
         | "cash"
         | "mpesa"
@@ -1049,7 +1123,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "treasurer", "auditor"],
-      fund_type: ["trust", "local"],
+      fund_type: ["trust", "local", "camp"],
       payment_method: [
         "cash",
         "mpesa",
