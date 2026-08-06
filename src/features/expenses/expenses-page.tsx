@@ -41,6 +41,20 @@ export function ExpensesPage() {
     },
   });
 
+  const { data: departments = [] } = useQuery({
+    queryKey: ["departments", church?.id],
+    enabled: !!church,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("departments")
+        .select("id,name")
+        .eq("church_id", church!.id)
+        .eq("is_active", true)
+        .order("sort_order");
+      return (data ?? []) as Cat[];
+    },
+  });
+
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["expenses", church?.id],
     enabled: !!church,
@@ -77,7 +91,7 @@ export function ExpensesPage() {
         actions={
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild><Button><Plus className="h-4 w-4 mr-1" /> New Expense</Button></DialogTrigger>
-            <NewExpense church={church} cats={cats} onDone={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["expenses"] }); qc.invalidateQueries({ queryKey: ["dashboard"] }); }} />
+            <NewExpense church={church} cats={cats} departments={departments} onDone={() => { setOpen(false); qc.invalidateQueries({ queryKey: ["expenses"] }); qc.invalidateQueries({ queryKey: ["dashboard"] }); }} />
           </Dialog>
         }
       />
@@ -148,10 +162,11 @@ export function ExpensesPage() {
   );
 }
 
-function NewExpense({ church, cats, onDone }: { church: { id: string }; cats: Cat[]; onDone: () => void }) {
+function NewExpense({ church, cats, departments, onDone }: { church: { id: string }; cats: Cat[]; departments: Cat[]; onDone: () => void }) {
   const [f, setF] = useState({
     transaction_date: new Date().toISOString().slice(0, 10),
     category_id: "",
+    department_id: "",
     description: "",
     vendor: "",
     amount: "",
@@ -171,6 +186,7 @@ function NewExpense({ church, cats, onDone }: { church: { id: string }; cats: Ca
         expense_number,
         transaction_date: f.transaction_date,
         category_id: f.category_id || null,
+        department_id: f.department_id || null,
         description: f.description || null,
         vendor: f.vendor || null,
         amount,
@@ -195,6 +211,13 @@ function NewExpense({ church, cats, onDone }: { church: { id: string }; cats: Ca
           <Select value={f.category_id} onValueChange={(v) => setF({ ...f, category_id: v })}>
             <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
             <SelectContent>{cats.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Department</Label>
+          <Select value={f.department_id} onValueChange={(v) => setF({ ...f, department_id: v })}>
+            <SelectTrigger><SelectValue placeholder="Select department (optional)" /></SelectTrigger>
+            <SelectContent>{departments.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
           </Select>
         </div>
         <div className="md:col-span-2"><Label>Description</Label><Input value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></div>

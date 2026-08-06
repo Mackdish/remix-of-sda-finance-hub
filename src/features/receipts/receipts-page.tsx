@@ -20,7 +20,8 @@ import { Plus, Printer, Search, Receipt as ReceiptIcon } from "lucide-react";
 import { printElement } from "@/lib/print";
 import { LockRowActions, LockStatusBadge } from "@/components/lock-actions";
 
-type Category = { id: string; name: string; fund_type: "trust" | "local"; conference_split_pct: number };
+type Category = { id: string; name: string; fund_type: "trust" | "local" | "camp"; conference_split_pct: number };
+type Department = { id: string; name: string };
 type Member = { id: string; full_name: string; membership_number: string | null; phone: string | null; department: string | null };
 type ReceiptRow = {
   id: string; receipt_number: string; transaction_date: string; member_name: string | null;
@@ -66,6 +67,20 @@ export function ReceiptsPage() {
     },
   });
 
+  const { data: departments = [] } = useQuery({
+    queryKey: ["departments", church?.id],
+    enabled: !!church,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("departments")
+        .select("id,name")
+        .eq("church_id", church!.id)
+        .eq("is_active", true)
+        .order("sort_order");
+      return (data ?? []) as Department[];
+    },
+  });
+
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["receipts", church?.id],
     enabled: !!church,
@@ -107,6 +122,7 @@ export function ReceiptsPage() {
               church={church}
               categories={cats}
               members={members}
+              departments={departments}
               onDone={(row) => {
                 setOpen(false);
                 qc.invalidateQueries({ queryKey: ["receipts"] });
@@ -194,11 +210,12 @@ export function ReceiptsPage() {
 }
 
 function NewReceiptDialog({
-  church, categories, members, onDone,
+  church, categories, members, departments, onDone,
 }: {
   church: { id: string; name: string };
   categories: Category[];
   members: Member[];
+  departments: Department[];
   onDone: (row: ReceiptRow | null) => void;
 }) {
   const [form, setForm] = useState({
@@ -208,6 +225,7 @@ function NewReceiptDialog({
     membership_number: "",
     phone: "",
     department: "",
+    department_id: "",
     offering_category_id: "",
     amount: "",
     payment_method: "cash" as (typeof PAY)[number],
@@ -234,6 +252,7 @@ function NewReceiptDialog({
           membership_number: form.membership_number || null,
           phone: form.phone || null,
           department: form.department || null,
+          department_id: form.department_id || null,
           offering_category_id: form.offering_category_id,
           amount,
           payment_method: form.payment_method,
@@ -324,6 +343,15 @@ function NewReceiptDialog({
         <div>
           <Label>Reference #</Label>
           <Input value={form.reference_number} onChange={(e) => setForm({ ...form, reference_number: e.target.value })} placeholder="M-Pesa code, cheque #" />
+        </div>
+        <div>
+          <Label>Department</Label>
+          <Select value={form.department_id} onValueChange={(v) => setForm({ ...form, department_id: v })}>
+            <SelectTrigger><SelectValue placeholder="Select department (optional)" /></SelectTrigger>
+            <SelectContent>
+              {departments.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
         <div className="md:col-span-2">
           <Label>Notes</Label>

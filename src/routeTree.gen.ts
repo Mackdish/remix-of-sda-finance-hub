@@ -20,11 +20,14 @@ import { Route as AuthenticatedRemittanceRouteImport } from './routes/_authentic
 import { Route as AuthenticatedReceiptsRouteImport } from './routes/_authenticated/receipts'
 import { Route as AuthenticatedMonthlyStatementRouteImport } from './routes/_authenticated/monthly-statement'
 import { Route as AuthenticatedMembersRouteImport } from './routes/_authenticated/members'
+import { Route as AuthenticatedMemberContributionsRouteImport } from './routes/_authenticated/member-contributions'
 import { Route as AuthenticatedLocalFundsRouteImport } from './routes/_authenticated/local-funds'
 import { Route as AuthenticatedExpensesRouteImport } from './routes/_authenticated/expenses'
+import { Route as AuthenticatedDepartmentsRouteImport } from './routes/_authenticated/departments'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedChurchProfileRouteImport } from './routes/_authenticated/church-profile'
 import { Route as AuthenticatedCashStatementRouteImport } from './routes/_authenticated/cash-statement'
+import { Route as AuthenticatedCampFundsRouteImport } from './routes/_authenticated/camp-funds'
 import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated/audit'
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated/approvals'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -89,6 +92,12 @@ const AuthenticatedMembersRoute = AuthenticatedMembersRouteImport.update({
   path: '/members',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMemberContributionsRoute =
+  AuthenticatedMemberContributionsRouteImport.update({
+    id: '/member-contributions',
+    path: '/member-contributions',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedLocalFundsRoute = AuthenticatedLocalFundsRouteImport.update({
   id: '/local-funds',
   path: '/local-funds',
@@ -99,6 +108,12 @@ const AuthenticatedExpensesRoute = AuthenticatedExpensesRouteImport.update({
   path: '/expenses',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDepartmentsRoute =
+  AuthenticatedDepartmentsRouteImport.update({
+    id: '/departments',
+    path: '/departments',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -116,6 +131,11 @@ const AuthenticatedCashStatementRoute =
     path: '/cash-statement',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCampFundsRoute = AuthenticatedCampFundsRouteImport.update({
+  id: '/camp-funds',
+  path: '/camp-funds',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAuditRoute = AuthenticatedAuditRouteImport.update({
   id: '/audit',
   path: '/audit',
@@ -164,11 +184,14 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
   '/audit': typeof AuthenticatedAuditRoute
+  '/camp-funds': typeof AuthenticatedCampFundsRoute
   '/cash-statement': typeof AuthenticatedCashStatementRoute
   '/church-profile': typeof AuthenticatedChurchProfileRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/departments': typeof AuthenticatedDepartmentsRoute
   '/expenses': typeof AuthenticatedExpensesRoute
   '/local-funds': typeof AuthenticatedLocalFundsRoute
+  '/member-contributions': typeof AuthenticatedMemberContributionsRoute
   '/members': typeof AuthenticatedMembersRoute
   '/monthly-statement': typeof AuthenticatedMonthlyStatementRoute
   '/receipts': typeof AuthenticatedReceiptsRoute
@@ -188,11 +211,14 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
   '/audit': typeof AuthenticatedAuditRoute
+  '/camp-funds': typeof AuthenticatedCampFundsRoute
   '/cash-statement': typeof AuthenticatedCashStatementRoute
   '/church-profile': typeof AuthenticatedChurchProfileRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/departments': typeof AuthenticatedDepartmentsRoute
   '/expenses': typeof AuthenticatedExpensesRoute
   '/local-funds': typeof AuthenticatedLocalFundsRoute
+  '/member-contributions': typeof AuthenticatedMemberContributionsRoute
   '/members': typeof AuthenticatedMembersRoute
   '/monthly-statement': typeof AuthenticatedMonthlyStatementRoute
   '/receipts': typeof AuthenticatedReceiptsRoute
@@ -214,11 +240,14 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
   '/_authenticated/audit': typeof AuthenticatedAuditRoute
+  '/_authenticated/camp-funds': typeof AuthenticatedCampFundsRoute
   '/_authenticated/cash-statement': typeof AuthenticatedCashStatementRoute
   '/_authenticated/church-profile': typeof AuthenticatedChurchProfileRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/departments': typeof AuthenticatedDepartmentsRoute
   '/_authenticated/expenses': typeof AuthenticatedExpensesRoute
   '/_authenticated/local-funds': typeof AuthenticatedLocalFundsRoute
+  '/_authenticated/member-contributions': typeof AuthenticatedMemberContributionsRoute
   '/_authenticated/members': typeof AuthenticatedMembersRoute
   '/_authenticated/monthly-statement': typeof AuthenticatedMonthlyStatementRoute
   '/_authenticated/receipts': typeof AuthenticatedReceiptsRoute
@@ -240,11 +269,14 @@ export interface FileRouteTypes {
     | '/admin'
     | '/approvals'
     | '/audit'
+    | '/camp-funds'
     | '/cash-statement'
     | '/church-profile'
     | '/dashboard'
+    | '/departments'
     | '/expenses'
     | '/local-funds'
+    | '/member-contributions'
     | '/members'
     | '/monthly-statement'
     | '/receipts'
@@ -264,11 +296,14 @@ export interface FileRouteTypes {
     | '/admin'
     | '/approvals'
     | '/audit'
+    | '/camp-funds'
     | '/cash-statement'
     | '/church-profile'
     | '/dashboard'
+    | '/departments'
     | '/expenses'
     | '/local-funds'
+    | '/member-contributions'
     | '/members'
     | '/monthly-statement'
     | '/receipts'
@@ -289,11 +324,14 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/approvals'
     | '/_authenticated/audit'
+    | '/_authenticated/camp-funds'
     | '/_authenticated/cash-statement'
     | '/_authenticated/church-profile'
     | '/_authenticated/dashboard'
+    | '/_authenticated/departments'
     | '/_authenticated/expenses'
     | '/_authenticated/local-funds'
+    | '/_authenticated/member-contributions'
     | '/_authenticated/members'
     | '/_authenticated/monthly-statement'
     | '/_authenticated/receipts'
@@ -395,6 +433,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMembersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/member-contributions': {
+      id: '/_authenticated/member-contributions'
+      path: '/member-contributions'
+      fullPath: '/member-contributions'
+      preLoaderRoute: typeof AuthenticatedMemberContributionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/local-funds': {
       id: '/_authenticated/local-funds'
       path: '/local-funds'
@@ -407,6 +452,13 @@ declare module '@tanstack/react-router' {
       path: '/expenses'
       fullPath: '/expenses'
       preLoaderRoute: typeof AuthenticatedExpensesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/departments': {
+      id: '/_authenticated/departments'
+      path: '/departments'
+      fullPath: '/departments'
+      preLoaderRoute: typeof AuthenticatedDepartmentsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -428,6 +480,13 @@ declare module '@tanstack/react-router' {
       path: '/cash-statement'
       fullPath: '/cash-statement'
       preLoaderRoute: typeof AuthenticatedCashStatementRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/camp-funds': {
+      id: '/_authenticated/camp-funds'
+      path: '/camp-funds'
+      fullPath: '/camp-funds'
+      preLoaderRoute: typeof AuthenticatedCampFundsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/audit': {
@@ -486,11 +545,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
   AuthenticatedAuditRoute: typeof AuthenticatedAuditRoute
+  AuthenticatedCampFundsRoute: typeof AuthenticatedCampFundsRoute
   AuthenticatedCashStatementRoute: typeof AuthenticatedCashStatementRoute
   AuthenticatedChurchProfileRoute: typeof AuthenticatedChurchProfileRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDepartmentsRoute: typeof AuthenticatedDepartmentsRoute
   AuthenticatedExpensesRoute: typeof AuthenticatedExpensesRoute
   AuthenticatedLocalFundsRoute: typeof AuthenticatedLocalFundsRoute
+  AuthenticatedMemberContributionsRoute: typeof AuthenticatedMemberContributionsRoute
   AuthenticatedMembersRoute: typeof AuthenticatedMembersRoute
   AuthenticatedMonthlyStatementRoute: typeof AuthenticatedMonthlyStatementRoute
   AuthenticatedReceiptsRoute: typeof AuthenticatedReceiptsRoute
@@ -504,11 +566,14 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
   AuthenticatedAuditRoute: AuthenticatedAuditRoute,
+  AuthenticatedCampFundsRoute: AuthenticatedCampFundsRoute,
   AuthenticatedCashStatementRoute: AuthenticatedCashStatementRoute,
   AuthenticatedChurchProfileRoute: AuthenticatedChurchProfileRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDepartmentsRoute: AuthenticatedDepartmentsRoute,
   AuthenticatedExpensesRoute: AuthenticatedExpensesRoute,
   AuthenticatedLocalFundsRoute: AuthenticatedLocalFundsRoute,
+  AuthenticatedMemberContributionsRoute: AuthenticatedMemberContributionsRoute,
   AuthenticatedMembersRoute: AuthenticatedMembersRoute,
   AuthenticatedMonthlyStatementRoute: AuthenticatedMonthlyStatementRoute,
   AuthenticatedReceiptsRoute: AuthenticatedReceiptsRoute,

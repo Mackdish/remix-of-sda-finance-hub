@@ -45,7 +45,7 @@ export function AdminPage() {
   // Offering category form
   const [cName, setCName] = useState("");
   const [cCode, setCCode] = useState("");
-  const [cFund, setCFund] = useState<"trust" | "local">("local");
+  const [cFund, setCFund] = useState<"trust" | "local" | "camp">("local");
   const [cSplit, setCSplit] = useState("0");
 
   const addCat = useMutation({
@@ -117,7 +117,7 @@ export function AdminPage() {
             <div><Label>Fund type</Label>
               <Select value={cFund} onValueChange={(v) => setCFund(v as any)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent><SelectItem value="trust">Trust</SelectItem><SelectItem value="local">Local</SelectItem></SelectContent>
+                <SelectContent><SelectItem value="trust">Trust</SelectItem><SelectItem value="local">Local</SelectItem><SelectItem value="camp">Camp expense</SelectItem></SelectContent>
               </Select>
             </div>
             <div><Label>Conference %</Label><Input type="number" value={cSplit} onChange={(e) => setCSplit(e.target.value)} /></div>

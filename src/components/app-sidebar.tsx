@@ -32,6 +32,9 @@ import {
   LogOut,
   ChurchIcon,
   ClipboardCheck,
+  Tent,
+  Trophy,
+  Layers,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -47,10 +50,12 @@ const nav = {
     { title: "Receipts", url: "/receipts", icon: Receipt },
     { title: "Expenses", url: "/expenses", icon: Wallet },
     { title: "Members", url: "/members", icon: Users },
+    { title: "Departments", url: "/departments", icon: Layers },
   ],
   Funds: [
     { title: "Trust Funds", url: "/trust-funds", icon: Coins },
     { title: "Local Church Funds", url: "/local-funds", icon: Landmark },
+    { title: "Camp Expense Fund", url: "/camp-funds", icon: Tent },
   ],
   Statements: [
     { title: "Cash Statement", url: "/cash-statement", icon: FileSpreadsheet },
@@ -60,6 +65,7 @@ const nav = {
   ],
   Insights: [
     { title: "Reports", url: "/reports", icon: BarChart3 },
+    { title: "Member Contributions", url: "/member-contributions", icon: Trophy },
   ],
   Administration: [
     { title: "Church Profile", url: "/church-profile", icon: Building2 },

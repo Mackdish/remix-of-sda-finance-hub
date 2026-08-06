@@ -23,6 +23,7 @@ export type CashStatementPdfInput = {
   conference: number;
   trust: number;
   local: number;
+  camp?: number;
   expenses: PdfExpense[];
   totalExpenses: number;
   net: number;
@@ -87,6 +88,7 @@ export function generateCashStatementPdf(input: CashStatementPdfInput): jsPDF {
       ["Conference (Tithe & Combined Offering)", money(input.conference)],
       ["Trust Funds (Sabbath School, 13th Sabbath, Missions)", money(input.trust)],
       ["Local Church Funds", money(input.local)],
+      ["Camp Expense Fund", money(input.camp ?? 0)],
     ],
     styles: { fontSize: 9, cellPadding: 5 },
     columnStyles: { 1: { halign: "right", cellWidth: 140 } },
