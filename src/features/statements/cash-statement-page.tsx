@@ -85,21 +85,24 @@ export function CashStatementPage() {
     let conference = 0;
     let trust = 0;
     let local = 0;
+    let camp = 0;
     for (const r of receipts) {
       const name = (r.offering_categories?.name ?? "").toLowerCase();
+      const fundType = r.offering_categories?.fund_type ?? "local";
       const split = Number(r.offering_categories?.conference_split_pct ?? 0);
       const amt = Number(r.amount);
       const confShare = (amt * split) / 100;
       const localShare = amt - confShare;
       conference += confShare;
-      if (TRUST_FUND_NAMES.some((n) => name.includes(n))) trust += localShare;
+      if (fundType === "camp") camp += localShare;
+      else if (fundType === "trust" || TRUST_FUND_NAMES.some((n) => name.includes(n))) trust += localShare;
       else local += localShare;
     }
 
     const totalExpenses = expenses.reduce((s, x) => s + Number(x.amount), 0);
     const net = totalReceipts - totalExpenses;
 
-    return { categories, totalReceipts, conference, trust, local, expenses, totalExpenses, net };
+    return { categories, totalReceipts, conference, trust, local, camp, expenses, totalExpenses, net };
   }, [data]);
 
   if (!church) return <><PageHeader title="Cash Statement" /><NoChurch /></>;
@@ -114,6 +117,7 @@ export function CashStatementPage() {
       conference: view.conference,
       trust: view.trust,
       local: view.local,
+      camp: view.camp,
       expenses: view.expenses.map((e) => ({
         date: e.transaction_date,
         description: e.description ?? "",
@@ -237,6 +241,10 @@ export function CashStatementPage() {
               <tr>
                 <td className="p-2">Local Church Funds</td>
                 <td className="p-2 text-right">{formatCurrency(view.local).replace(/^KES\s*/, "")}</td>
+              </tr>
+              <tr className="border-t border-border">
+                <td className="p-2">Camp Expense Fund</td>
+                <td className="p-2 text-right">{formatCurrency(view.camp).replace(/^KES\s*/, "")}</td>
               </tr>
             </tbody>
           </table>
