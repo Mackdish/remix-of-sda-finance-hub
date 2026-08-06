@@ -210,11 +210,12 @@ export function ReceiptsPage() {
 }
 
 function NewReceiptDialog({
-  church, categories, members, onDone,
+  church, categories, members, departments, onDone,
 }: {
   church: { id: string; name: string };
   categories: Category[];
   members: Member[];
+  departments: Department[];
   onDone: (row: ReceiptRow | null) => void;
 }) {
   const [form, setForm] = useState({
@@ -224,6 +225,7 @@ function NewReceiptDialog({
     membership_number: "",
     phone: "",
     department: "",
+    department_id: "",
     offering_category_id: "",
     amount: "",
     payment_method: "cash" as (typeof PAY)[number],
@@ -250,6 +252,7 @@ function NewReceiptDialog({
           membership_number: form.membership_number || null,
           phone: form.phone || null,
           department: form.department || null,
+          department_id: form.department_id || null,
           offering_category_id: form.offering_category_id,
           amount,
           payment_method: form.payment_method,
@@ -340,6 +343,15 @@ function NewReceiptDialog({
         <div>
           <Label>Reference #</Label>
           <Input value={form.reference_number} onChange={(e) => setForm({ ...form, reference_number: e.target.value })} placeholder="M-Pesa code, cheque #" />
+        </div>
+        <div>
+          <Label>Department</Label>
+          <Select value={form.department_id} onValueChange={(v) => setForm({ ...form, department_id: v })}>
+            <SelectTrigger><SelectValue placeholder="Select department (optional)" /></SelectTrigger>
+            <SelectContent>
+              {departments.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
         <div className="md:col-span-2">
           <Label>Notes</Label>
