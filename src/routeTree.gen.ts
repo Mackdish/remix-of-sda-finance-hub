@@ -25,6 +25,7 @@ import { Route as AuthenticatedExpensesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedChurchProfileRouteImport } from './routes/_authenticated/church-profile'
 import { Route as AuthenticatedCashStatementRouteImport } from './routes/_authenticated/cash-statement'
+import { Route as AuthenticatedCampFundsRouteImport } from './routes/_authenticated/camp-funds'
 import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated/audit'
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated/approvals'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -116,6 +117,11 @@ const AuthenticatedCashStatementRoute =
     path: '/cash-statement',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCampFundsRoute = AuthenticatedCampFundsRouteImport.update({
+  id: '/camp-funds',
+  path: '/camp-funds',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAuditRoute = AuthenticatedAuditRouteImport.update({
   id: '/audit',
   path: '/audit',
@@ -164,6 +170,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
   '/audit': typeof AuthenticatedAuditRoute
+  '/camp-funds': typeof AuthenticatedCampFundsRoute
   '/cash-statement': typeof AuthenticatedCashStatementRoute
   '/church-profile': typeof AuthenticatedChurchProfileRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -188,6 +195,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
   '/audit': typeof AuthenticatedAuditRoute
+  '/camp-funds': typeof AuthenticatedCampFundsRoute
   '/cash-statement': typeof AuthenticatedCashStatementRoute
   '/church-profile': typeof AuthenticatedChurchProfileRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -214,6 +222,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
   '/_authenticated/audit': typeof AuthenticatedAuditRoute
+  '/_authenticated/camp-funds': typeof AuthenticatedCampFundsRoute
   '/_authenticated/cash-statement': typeof AuthenticatedCashStatementRoute
   '/_authenticated/church-profile': typeof AuthenticatedChurchProfileRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -240,6 +249,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/approvals'
     | '/audit'
+    | '/camp-funds'
     | '/cash-statement'
     | '/church-profile'
     | '/dashboard'
@@ -264,6 +274,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/approvals'
     | '/audit'
+    | '/camp-funds'
     | '/cash-statement'
     | '/church-profile'
     | '/dashboard'
@@ -289,6 +300,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/approvals'
     | '/_authenticated/audit'
+    | '/_authenticated/camp-funds'
     | '/_authenticated/cash-statement'
     | '/_authenticated/church-profile'
     | '/_authenticated/dashboard'
@@ -430,6 +442,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCashStatementRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/camp-funds': {
+      id: '/_authenticated/camp-funds'
+      path: '/camp-funds'
+      fullPath: '/camp-funds'
+      preLoaderRoute: typeof AuthenticatedCampFundsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/audit': {
       id: '/_authenticated/audit'
       path: '/audit'
@@ -486,6 +505,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
   AuthenticatedAuditRoute: typeof AuthenticatedAuditRoute
+  AuthenticatedCampFundsRoute: typeof AuthenticatedCampFundsRoute
   AuthenticatedCashStatementRoute: typeof AuthenticatedCashStatementRoute
   AuthenticatedChurchProfileRoute: typeof AuthenticatedChurchProfileRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -504,6 +524,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
   AuthenticatedAuditRoute: AuthenticatedAuditRoute,
+  AuthenticatedCampFundsRoute: AuthenticatedCampFundsRoute,
   AuthenticatedCashStatementRoute: AuthenticatedCashStatementRoute,
   AuthenticatedChurchProfileRoute: AuthenticatedChurchProfileRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
