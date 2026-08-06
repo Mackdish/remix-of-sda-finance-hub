@@ -20,6 +20,7 @@ import { Route as AuthenticatedRemittanceRouteImport } from './routes/_authentic
 import { Route as AuthenticatedReceiptsRouteImport } from './routes/_authenticated/receipts'
 import { Route as AuthenticatedMonthlyStatementRouteImport } from './routes/_authenticated/monthly-statement'
 import { Route as AuthenticatedMembersRouteImport } from './routes/_authenticated/members'
+import { Route as AuthenticatedMemberContributionsRouteImport } from './routes/_authenticated/member-contributions'
 import { Route as AuthenticatedLocalFundsRouteImport } from './routes/_authenticated/local-funds'
 import { Route as AuthenticatedExpensesRouteImport } from './routes/_authenticated/expenses'
 import { Route as AuthenticatedDepartmentsRouteImport } from './routes/_authenticated/departments'
@@ -91,6 +92,12 @@ const AuthenticatedMembersRoute = AuthenticatedMembersRouteImport.update({
   path: '/members',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMemberContributionsRoute =
+  AuthenticatedMemberContributionsRouteImport.update({
+    id: '/member-contributions',
+    path: '/member-contributions',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedLocalFundsRoute = AuthenticatedLocalFundsRouteImport.update({
   id: '/local-funds',
   path: '/local-funds',
@@ -184,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/departments': typeof AuthenticatedDepartmentsRoute
   '/expenses': typeof AuthenticatedExpensesRoute
   '/local-funds': typeof AuthenticatedLocalFundsRoute
+  '/member-contributions': typeof AuthenticatedMemberContributionsRoute
   '/members': typeof AuthenticatedMembersRoute
   '/monthly-statement': typeof AuthenticatedMonthlyStatementRoute
   '/receipts': typeof AuthenticatedReceiptsRoute
@@ -210,6 +218,7 @@ export interface FileRoutesByTo {
   '/departments': typeof AuthenticatedDepartmentsRoute
   '/expenses': typeof AuthenticatedExpensesRoute
   '/local-funds': typeof AuthenticatedLocalFundsRoute
+  '/member-contributions': typeof AuthenticatedMemberContributionsRoute
   '/members': typeof AuthenticatedMembersRoute
   '/monthly-statement': typeof AuthenticatedMonthlyStatementRoute
   '/receipts': typeof AuthenticatedReceiptsRoute
@@ -238,6 +247,7 @@ export interface FileRoutesById {
   '/_authenticated/departments': typeof AuthenticatedDepartmentsRoute
   '/_authenticated/expenses': typeof AuthenticatedExpensesRoute
   '/_authenticated/local-funds': typeof AuthenticatedLocalFundsRoute
+  '/_authenticated/member-contributions': typeof AuthenticatedMemberContributionsRoute
   '/_authenticated/members': typeof AuthenticatedMembersRoute
   '/_authenticated/monthly-statement': typeof AuthenticatedMonthlyStatementRoute
   '/_authenticated/receipts': typeof AuthenticatedReceiptsRoute
@@ -266,6 +276,7 @@ export interface FileRouteTypes {
     | '/departments'
     | '/expenses'
     | '/local-funds'
+    | '/member-contributions'
     | '/members'
     | '/monthly-statement'
     | '/receipts'
@@ -292,6 +303,7 @@ export interface FileRouteTypes {
     | '/departments'
     | '/expenses'
     | '/local-funds'
+    | '/member-contributions'
     | '/members'
     | '/monthly-statement'
     | '/receipts'
@@ -319,6 +331,7 @@ export interface FileRouteTypes {
     | '/_authenticated/departments'
     | '/_authenticated/expenses'
     | '/_authenticated/local-funds'
+    | '/_authenticated/member-contributions'
     | '/_authenticated/members'
     | '/_authenticated/monthly-statement'
     | '/_authenticated/receipts'
@@ -418,6 +431,13 @@ declare module '@tanstack/react-router' {
       path: '/members'
       fullPath: '/members'
       preLoaderRoute: typeof AuthenticatedMembersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/member-contributions': {
+      id: '/_authenticated/member-contributions'
+      path: '/member-contributions'
+      fullPath: '/member-contributions'
+      preLoaderRoute: typeof AuthenticatedMemberContributionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/local-funds': {
@@ -532,6 +552,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDepartmentsRoute: typeof AuthenticatedDepartmentsRoute
   AuthenticatedExpensesRoute: typeof AuthenticatedExpensesRoute
   AuthenticatedLocalFundsRoute: typeof AuthenticatedLocalFundsRoute
+  AuthenticatedMemberContributionsRoute: typeof AuthenticatedMemberContributionsRoute
   AuthenticatedMembersRoute: typeof AuthenticatedMembersRoute
   AuthenticatedMonthlyStatementRoute: typeof AuthenticatedMonthlyStatementRoute
   AuthenticatedReceiptsRoute: typeof AuthenticatedReceiptsRoute
@@ -552,6 +573,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDepartmentsRoute: AuthenticatedDepartmentsRoute,
   AuthenticatedExpensesRoute: AuthenticatedExpensesRoute,
   AuthenticatedLocalFundsRoute: AuthenticatedLocalFundsRoute,
+  AuthenticatedMemberContributionsRoute: AuthenticatedMemberContributionsRoute,
   AuthenticatedMembersRoute: AuthenticatedMembersRoute,
   AuthenticatedMonthlyStatementRoute: AuthenticatedMonthlyStatementRoute,
   AuthenticatedReceiptsRoute: AuthenticatedReceiptsRoute,
