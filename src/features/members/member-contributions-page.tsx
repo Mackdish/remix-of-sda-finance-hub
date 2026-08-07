@@ -10,7 +10,13 @@ import { formatCurrency } from "@/lib/format";
 import { PeriodPicker } from "@/components/period-picker";
 import { periodRange, downloadCsv, type PeriodKind } from "@/lib/periods";
 import { printElement } from "@/lib/print";
-import { Download, Printer, Search, Trophy } from "lucide-react";
+import { Download, FileSpreadsheet, Printer, Search, Trophy } from "lucide-react";
+import * as XLSX from "xlsx";
+import {
+  generateMemberContributionsWorkbook,
+  memberRankHeader,
+  memberRankBody,
+} from "@/lib/member-contributions-xlsx";
 
 type Row = {
   id: string; amount: number; transaction_date: string; member_id: string | null;
@@ -48,8 +54,18 @@ export function MemberContributionsPage() {
     [rows],
   );
 
+  const funds = useMemo(
+    () => ["trust", "local", "camp"].filter((f) => rows.some((r) => r.offering_categories?.fund_type === f)),
+    [rows],
+  );
+  const fundLabel: Record<string, string> = {
+    trust: "Trust Fund",
+    local: "Local Church Fund",
+    camp: "Camp Expense Fund",
+  };
+
   const ranked = useMemo(() => {
-    const m = new Map<string, { key: string; name: string; number: string | null; department: string; total: number; count: number; byCat: Record<string, number> }>();
+    const m = new Map<string, { key: string; name: string; number: string | null; department: string; total: number; count: number; byCat: Record<string, number>; byFund: Record<string, number> }>();
     rows.forEach((r) => {
       const key = r.member_id ?? `name:${(r.member_name ?? "Anonymous").toLowerCase()}`;
       const cur = m.get(key) ?? {
@@ -60,11 +76,14 @@ export function MemberContributionsPage() {
         total: 0,
         count: 0,
         byCat: {},
+        byFund: {},
       };
       const cat = r.offering_categories?.name ?? "Uncategorised";
+      const fund = r.offering_categories?.fund_type ?? "local";
       cur.total += Number(r.amount);
       cur.count += 1;
       cur.byCat[cat] = (cur.byCat[cat] ?? 0) + Number(r.amount);
+      cur.byFund[fund] = (cur.byFund[fund] ?? 0) + Number(r.amount);
       m.set(key, cur);
     });
     return Array.from(m.values()).sort((a, b) => b.total - a.total);
@@ -84,6 +103,16 @@ export function MemberContributionsPage() {
 
   const grand = ranked.reduce((s, r) => s + r.total, 0);
 
+  const exportInput = {
+    churchName: church?.name ?? "",
+    periodLabel: label,
+    start,
+    end,
+    categories,
+    funds,
+    rows: ranked,
+  };
+
   if (!church) return <><PageHeader title="Member Contributions" /><NoChurch /></>;
 
   return (
@@ -94,9 +123,13 @@ export function MemberContributionsPage() {
         actions={
           <>
             <Button variant="outline" onClick={() => downloadCsv(`member_contributions_${start}_${end}.csv`, [
-              ["Rank", "Member", "Membership #", "Department", "Receipts", "Total", ...categories],
-              ...ranked.map((r, i) => [i + 1, r.name, r.number ?? "", r.department, r.count, r.total, ...categories.map((c) => r.byCat[c] ?? 0)]),
+              memberRankHeader(exportInput),
+              ...memberRankBody(exportInput),
             ])}><Download className="h-4 w-4 mr-1" /> Export CSV</Button>
+            <Button variant="outline" onClick={() => XLSX.writeFile(
+              generateMemberContributionsWorkbook(exportInput),
+              `member_contributions_${start}_${end}.xlsx`,
+            )}><FileSpreadsheet className="h-4 w-4 mr-1" /> Excel</Button>
             <Button onClick={() => printElement("member-report", "Member Contributions")}><Printer className="h-4 w-4 mr-1" /> Print</Button>
           </>
         }
