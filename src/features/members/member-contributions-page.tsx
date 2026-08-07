@@ -162,13 +162,14 @@ export function MemberContributionsPage() {
                   <th className="py-2 pr-4">Membership #</th>
                   <th className="py-2 pr-4">Department</th>
                   <th className="py-2 pr-4 text-right">Receipts</th>
+                  {funds.map((f) => <th key={f} className="py-2 pr-4 text-right">{fundLabel[f]}</th>)}
                   <th className="py-2 pr-4 text-right">Total given</th>
                   <th className="py-2 pr-4 text-right">Share</th>
                   <th className="py-2 pr-4 no-print"></th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.length === 0 && <tr><td colSpan={8} className="py-6 text-center text-muted-foreground">No contributions in this period.</td></tr>}
+                {filtered.length === 0 && <tr><td colSpan={8 + funds.length} className="py-6 text-center text-muted-foreground">No contributions in this period.</td></tr>}
                 {filtered.map((r) => {
                   const rank = ranked.findIndex((x) => x.key === r.key) + 1;
                   return (
@@ -178,6 +179,7 @@ export function MemberContributionsPage() {
                       <td className="py-2 pr-4">{r.number ?? "—"}</td>
                       <td className="py-2 pr-4">{r.department}</td>
                       <td className="py-2 pr-4 text-right">{r.count}</td>
+                      {funds.map((f) => <td key={f} className="py-2 pr-4 text-right">{r.byFund[f] ? formatCurrency(r.byFund[f]) : "—"}</td>)}
                       <td className="py-2 pr-4 text-right">{formatCurrency(r.total)}</td>
                       <td className="py-2 pr-4 text-right">{grand ? ((r.total / grand) * 100).toFixed(1) : "0.0"}%</td>
                       <td className="py-2 pr-4 text-right no-print">
@@ -190,6 +192,9 @@ export function MemberContributionsPage() {
               <tfoot>
                 <tr className="border-t-2 border-border font-semibold">
                   <td /><td className="py-2 pr-4">Total</td><td /><td /><td />
+                  {funds.map((f) => (
+                    <td key={f} className="py-2 pr-4 text-right">{formatCurrency(ranked.reduce((s, r) => s + (r.byFund[f] ?? 0), 0))}</td>
+                  ))}
                   <td className="py-2 pr-4 text-right">{formatCurrency(grand)}</td><td /><td className="no-print" />
                 </tr>
               </tfoot>
