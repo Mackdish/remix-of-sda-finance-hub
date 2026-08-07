@@ -2,7 +2,14 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { formatCurrency } from "@/lib/format";
 
-export type PdfCategory = { name: string; fund: "CONFERENCE" | "LOCAL"; amount: number };
+export type PdfCategory = {
+  name: string;
+  fund: string;
+  splitPct: number;
+  amount: number;
+  trust: number;
+  local: number;
+};
 export type PdfExpense = { date: string; description: string; category: string; amount: number };
 export type PdfSignatures = {
   treasurer?: string | null;
@@ -20,10 +27,10 @@ export type CashStatementPdfInput = {
   end: string;
   categories: PdfCategory[];
   totalReceipts: number;
-  conference: number;
   trust: number;
   local: number;
   camp?: number;
+  balanced?: boolean;
   expenses: PdfExpense[];
   totalExpenses: number;
   net: number;
@@ -63,16 +70,28 @@ export function generateCashStatementPdf(input: CashStatementPdfInput): jsPDF {
   y += 6;
   autoTable(doc, {
     startY: y,
-    head: [["CATEGORY", "FUND", "AMOUNT (KES)"]],
+    head: [["CATEGORY", "FUND", "SPLIT", "AMOUNT", "TRUST/CONF", "LOCAL"]],
     body:
       input.categories.length > 0
-        ? input.categories.map((c) => [c.name, c.fund, money(c.amount)])
-        : [[{ content: "No receipts in this period", colSpan: 3, styles: { halign: "center", textColor: 120 } } as any]],
-    foot: [[{ content: "Total Receipts", colSpan: 2, styles: { halign: "left", fontStyle: "bold" } }, { content: money(input.totalReceipts), styles: { halign: "right", fontStyle: "bold" } }]],
+        ? input.categories.map((c) => [
+            c.name,
+            c.fund,
+            `${c.splitPct}% / ${100 - c.splitPct}%`,
+            money(c.amount),
+            money(c.trust),
+            money(c.local),
+          ])
+        : [[{ content: "No receipts in this period", colSpan: 6, styles: { halign: "center", textColor: 120 } } as any]],
+    foot: [[
+      { content: "Total Receipts", colSpan: 3, styles: { halign: "left", fontStyle: "bold" } },
+      { content: money(input.totalReceipts), styles: { halign: "right", fontStyle: "bold" } },
+      { content: money(input.trust), styles: { halign: "right", fontStyle: "bold" } },
+      { content: money(input.local + (input.camp ?? 0)), styles: { halign: "right", fontStyle: "bold" } },
+    ]],
     styles: { fontSize: 9, cellPadding: 5 },
     headStyles: { fillColor: [20, 60, 40], textColor: 255 },
     footStyles: { fillColor: [240, 240, 240], textColor: 20 },
-    columnStyles: { 2: { halign: "right" } },
+    columnStyles: { 3: { halign: "right" }, 4: { halign: "right" }, 5: { halign: "right" } },
     margin: { left: marginX, right: marginX },
   });
   y = (doc as any).lastAutoTable.finalY + 16;
@@ -85,10 +104,15 @@ export function generateCashStatementPdf(input: CashStatementPdfInput): jsPDF {
   autoTable(doc, {
     startY: y,
     body: [
-      ["Conference (Tithe & Combined Offering)", money(input.conference)],
-      ["Trust Funds (Sabbath School, 13th Sabbath, Missions)", money(input.trust)],
-      ["Local Church Funds", money(input.local)],
+      ["Trust Fund — remitted to Conference", money(input.trust)],
+      ["Local Church Fund", money(input.local)],
       ["Camp Expense Fund", money(input.camp ?? 0)],
+      [
+        input.balanced === false
+          ? "TOTAL (does not balance with receipts)"
+          : "TOTAL (balances with Total Receipts)",
+        money(input.trust + input.local + (input.camp ?? 0)),
+      ],
     ],
     styles: { fontSize: 9, cellPadding: 5 },
     columnStyles: { 1: { halign: "right", cellWidth: 140 } },
