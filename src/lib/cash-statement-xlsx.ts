@@ -12,17 +12,30 @@ export function generateCashStatementWorkbook(input: CashStatementPdfInput): XLS
   rows.push([]);
 
   rows.push(["Part A — Receipts (Income)"]);
-  rows.push(["CATEGORY", "FUND", "AMOUNT (KES)"]);
+  rows.push(["CATEGORY", "FUND", "SPLIT (CONF/LOCAL)", "AMOUNT (KES)", "TRUST/CONFERENCE", "LOCAL CHURCH"]);
   if (input.categories.length === 0) rows.push(["No receipts in this period"]);
-  else for (const c of input.categories) rows.push([c.name, c.fund, c.amount]);
-  rows.push(["Total Receipts", "", input.totalReceipts]);
+  else
+    for (const c of input.categories)
+      rows.push([c.name, c.fund, `${c.splitPct}% / ${100 - c.splitPct}%`, c.amount, c.trust, c.local]);
+  rows.push([
+    "Total Receipts",
+    "",
+    "",
+    input.totalReceipts,
+    input.trust,
+    input.local + (input.camp ?? 0),
+  ]);
   rows.push([]);
 
   rows.push(["Part B — Fund Summary"]);
-  rows.push(["Conference (Tithe & Combined Offering)", "", input.conference]);
-  rows.push(["Trust Funds (Sabbath School, 13th Sabbath, Missions)", "", input.trust]);
-  rows.push(["Local Church Funds", "", input.local]);
+  rows.push(["Trust Fund — remitted to Conference", "", input.trust]);
+  rows.push(["Local Church Fund", "", input.local]);
   rows.push(["Camp Expense Fund", "", input.camp ?? 0]);
+  rows.push([
+    input.balanced === false ? "TOTAL (does not balance with receipts)" : "TOTAL (balances with Total Receipts)",
+    "",
+    input.trust + input.local + (input.camp ?? 0),
+  ]);
   rows.push([]);
 
   rows.push(["Part C — Expenses"]);
@@ -39,7 +52,7 @@ export function generateCashStatementWorkbook(input: CashStatementPdfInput): XLS
   rows.push(["PASTOR", input.signatures?.pastorName ?? ""]);
 
   const sheet = XLSX.utils.aoa_to_sheet(rows);
-  sheet["!cols"] = [{ wch: 46 }, { wch: 26 }, { wch: 20 }, { wch: 16 }];
+  sheet["!cols"] = [{ wch: 46 }, { wch: 22 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 18 }];
   for (const ref of Object.keys(sheet)) {
     if (ref.startsWith("!")) continue;
     const cell = sheet[ref] as XLSX.CellObject;

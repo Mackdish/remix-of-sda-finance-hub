@@ -13,6 +13,7 @@ import { printElement } from "@/lib/print";
 import { SignaturePad } from "@/components/signature-pad";
 import { generateCashStatementPdf } from "@/lib/cash-statement-pdf";
 import { generateCashStatementWorkbook } from "@/lib/cash-statement-xlsx";
+import { splitReceipts, FUND_LABEL } from "@/lib/funds";
 import * as XLSX from "xlsx";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -33,8 +34,6 @@ type ExpenseRow = {
   description: string | null;
   expense_categories: { name: string } | null;
 };
-
-const TRUST_FUND_NAMES = ["sabbath school", "13th sabbath", "mission", "missions"];
 
 export function CashStatementPage() {
   const { data: church } = useCurrentChurch();
@@ -65,44 +64,22 @@ export function CashStatementPage() {
   const view = useMemo(() => {
     const receipts = data?.receipts ?? [];
     const expenses = data?.expenses ?? [];
-
-    // Aggregate receipts by category
-    const catMap = new Map<string, { name: string; fund: "CONFERENCE" | "LOCAL"; amount: number }>();
-    for (const r of receipts) {
-      const name = r.offering_categories?.name ?? "Uncategorized";
-      const split = Number(r.offering_categories?.conference_split_pct ?? 0);
-      const fund: "CONFERENCE" | "LOCAL" = split >= 50 ? "CONFERENCE" : "LOCAL";
-      const key = `${name}|${fund}`;
-      const prev = catMap.get(key);
-      const amt = Number(r.amount);
-      if (prev) prev.amount += amt;
-      else catMap.set(key, { name, fund, amount: amt });
-    }
-    const categories = Array.from(catMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-    const totalReceipts = categories.reduce((s, c) => s + c.amount, 0);
-
-    // Fund Summary
-    let conference = 0;
-    let trust = 0;
-    let local = 0;
-    let camp = 0;
-    for (const r of receipts) {
-      const name = (r.offering_categories?.name ?? "").toLowerCase();
-      const fundType = r.offering_categories?.fund_type ?? "local";
-      const split = Number(r.offering_categories?.conference_split_pct ?? 0);
-      const amt = Number(r.amount);
-      const confShare = (amt * split) / 100;
-      const localShare = amt - confShare;
-      conference += confShare;
-      if (fundType === "camp") camp += localShare;
-      else if (fundType === "trust" || TRUST_FUND_NAMES.some((n) => name.includes(n))) trust += localShare;
-      else local += localShare;
-    }
-
+    const split = splitReceipts(receipts);
     const totalExpenses = expenses.reduce((s, x) => s + Number(x.amount), 0);
-    const net = totalReceipts - totalExpenses;
+    const net = split.total - totalExpenses;
 
-    return { categories, totalReceipts, conference, trust, local, camp, expenses, totalExpenses, net };
+    return {
+      categories: split.categories,
+      totalReceipts: split.total,
+      trust: split.trust,
+      local: split.local,
+      camp: split.camp,
+      balanced: split.balanced,
+      difference: split.difference,
+      expenses,
+      totalExpenses,
+      net,
+    };
   }, [data]);
 
   if (!church) return <><PageHeader title="Cash Statement" /><NoChurch /></>;
@@ -112,12 +89,19 @@ export function CashStatementPage() {
       location: [church.address, church.city].filter(Boolean).join(", "),
       start,
       end,
-      categories: view.categories,
+      categories: view.categories.map((c) => ({
+        name: c.name,
+        fund: FUND_LABEL[c.fundType],
+        splitPct: c.splitPct,
+        amount: c.amount,
+        trust: c.trust,
+        local: c.local,
+      })),
       totalReceipts: view.totalReceipts,
-      conference: view.conference,
       trust: view.trust,
       local: view.local,
       camp: view.camp,
+      balanced: view.balanced,
       expenses: view.expenses.map((e) => ({
         date: e.transaction_date,
         description: e.description ?? "",
@@ -204,25 +188,40 @@ export function CashStatementPage() {
               <tr>
                 <th className="text-left p-2 border-b border-border">CATEGORY</th>
                 <th className="text-left p-2 border-b border-border">FUND</th>
+                <th className="text-left p-2 border-b border-border">SPLIT</th>
                 <th className="text-right p-2 border-b border-border">AMOUNT (KES)</th>
+                <th className="text-right p-2 border-b border-border">TRUST/CONF</th>
+                <th className="text-right p-2 border-b border-border">LOCAL</th>
               </tr>
             </thead>
             <tbody>
               {view.categories.length === 0 ? (
-                <tr><td colSpan={3} className="p-3 text-center text-muted-foreground">No receipts in this period</td></tr>
+                <tr><td colSpan={6} className="p-3 text-center text-muted-foreground">No receipts in this period</td></tr>
               ) : view.categories.map((c, i) => (
                 <tr key={i} className="border-b border-border">
                   <td className="p-2">{c.name}</td>
-                  <td className="p-2">{c.fund}</td>
+                  <td className="p-2">{FUND_LABEL[c.fundType]}</td>
+                  <td className="p-2">{c.splitPct}% / {100 - c.splitPct}%</td>
                   <td className="p-2 text-right">{formatCurrency(c.amount).replace(/^KES\s*/, "")}</td>
+                  <td className="p-2 text-right">{formatCurrency(c.trust).replace(/^KES\s*/, "")}</td>
+                  <td className="p-2 text-right">{formatCurrency(c.local).replace(/^KES\s*/, "")}</td>
                 </tr>
               ))}
             </tbody>
+            <tfoot>
+              <tr className="font-semibold bg-muted/40">
+                <td className="p-2" colSpan={3}>Total Receipts</td>
+                <td className="p-2 text-right">{formatCurrency(view.totalReceipts).replace(/^KES\s*/, "")}</td>
+                <td className="p-2 text-right">{formatCurrency(view.trust).replace(/^KES\s*/, "")}</td>
+                <td className="p-2 text-right">{formatCurrency(view.local + view.camp).replace(/^KES\s*/, "")}</td>
+              </tr>
+            </tfoot>
           </table>
-          <div className="flex justify-between mt-2 font-semibold text-sm">
-            <span>Total Receipts</span>
-            <span>{formatCurrency(view.totalReceipts)}</span>
-          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            Trust / Conference: Tithe 100%, 13th Sabbath 100%, Combined Offering 50%, Camp Goal 50%, Thanksgiving 50%,
+            First Fruit 50%, Special Offering 50%. Local church: the matching 50% halves plus Camp Expense 100%,
+            Development 100%, Camp Food 100%.
+          </p>
         </section>
 
         {/* Part B — Fund Summary */}
@@ -231,20 +230,29 @@ export function CashStatementPage() {
           <table className="w-full text-sm border border-border">
             <tbody>
               <tr className="border-b border-border">
-                <td className="p-2">Conference (Tithe & Combined Offering)</td>
-                <td className="p-2 text-right">{formatCurrency(view.conference).replace(/^KES\s*/, "")}</td>
-              </tr>
-              <tr className="border-b border-border">
-                <td className="p-2">Trust Funds (Sabbath School, 13th Sabbath, Missions)</td>
+                <td className="p-2">Trust Fund — remitted to Conference</td>
                 <td className="p-2 text-right">{formatCurrency(view.trust).replace(/^KES\s*/, "")}</td>
               </tr>
-              <tr>
-                <td className="p-2">Local Church Funds</td>
+              <tr className="border-b border-border">
+                <td className="p-2">Local Church Fund</td>
                 <td className="p-2 text-right">{formatCurrency(view.local).replace(/^KES\s*/, "")}</td>
               </tr>
-              <tr className="border-t border-border">
+              <tr className="border-b border-border">
                 <td className="p-2">Camp Expense Fund</td>
                 <td className="p-2 text-right">{formatCurrency(view.camp).replace(/^KES\s*/, "")}</td>
+              </tr>
+              <tr className="font-semibold bg-muted/40">
+                <td className="p-2">
+                  TOTAL{" "}
+                  <span className={view.balanced ? "text-primary" : "text-destructive"}>
+                    {view.balanced
+                      ? "(balances with Total Receipts)"
+                      : `(out of balance by ${formatCurrency(view.difference)})`}
+                  </span>
+                </td>
+                <td className="p-2 text-right">
+                  {formatCurrency(view.trust + view.local + view.camp).replace(/^KES\s*/, "")}
+                </td>
               </tr>
             </tbody>
           </table>
