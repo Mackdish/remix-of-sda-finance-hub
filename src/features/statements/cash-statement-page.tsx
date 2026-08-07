@@ -13,6 +13,7 @@ import { printElement } from "@/lib/print";
 import { SignaturePad } from "@/components/signature-pad";
 import { generateCashStatementPdf } from "@/lib/cash-statement-pdf";
 import { generateCashStatementWorkbook } from "@/lib/cash-statement-xlsx";
+import { splitReceipts, FUND_LABEL } from "@/lib/funds";
 import * as XLSX from "xlsx";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -33,8 +34,6 @@ type ExpenseRow = {
   description: string | null;
   expense_categories: { name: string } | null;
 };
-
-const TRUST_FUND_NAMES = ["sabbath school", "13th sabbath", "mission", "missions"];
 
 export function CashStatementPage() {
   const { data: church } = useCurrentChurch();
@@ -65,44 +64,22 @@ export function CashStatementPage() {
   const view = useMemo(() => {
     const receipts = data?.receipts ?? [];
     const expenses = data?.expenses ?? [];
-
-    // Aggregate receipts by category
-    const catMap = new Map<string, { name: string; fund: "CONFERENCE" | "LOCAL"; amount: number }>();
-    for (const r of receipts) {
-      const name = r.offering_categories?.name ?? "Uncategorized";
-      const split = Number(r.offering_categories?.conference_split_pct ?? 0);
-      const fund: "CONFERENCE" | "LOCAL" = split >= 50 ? "CONFERENCE" : "LOCAL";
-      const key = `${name}|${fund}`;
-      const prev = catMap.get(key);
-      const amt = Number(r.amount);
-      if (prev) prev.amount += amt;
-      else catMap.set(key, { name, fund, amount: amt });
-    }
-    const categories = Array.from(catMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-    const totalReceipts = categories.reduce((s, c) => s + c.amount, 0);
-
-    // Fund Summary
-    let conference = 0;
-    let trust = 0;
-    let local = 0;
-    let camp = 0;
-    for (const r of receipts) {
-      const name = (r.offering_categories?.name ?? "").toLowerCase();
-      const fundType = r.offering_categories?.fund_type ?? "local";
-      const split = Number(r.offering_categories?.conference_split_pct ?? 0);
-      const amt = Number(r.amount);
-      const confShare = (amt * split) / 100;
-      const localShare = amt - confShare;
-      conference += confShare;
-      if (fundType === "camp") camp += localShare;
-      else if (fundType === "trust" || TRUST_FUND_NAMES.some((n) => name.includes(n))) trust += localShare;
-      else local += localShare;
-    }
-
+    const split = splitReceipts(receipts);
     const totalExpenses = expenses.reduce((s, x) => s + Number(x.amount), 0);
-    const net = totalReceipts - totalExpenses;
+    const net = split.total - totalExpenses;
 
-    return { categories, totalReceipts, conference, trust, local, camp, expenses, totalExpenses, net };
+    return {
+      categories: split.categories,
+      totalReceipts: split.total,
+      trust: split.trust,
+      local: split.local,
+      camp: split.camp,
+      balanced: split.balanced,
+      difference: split.difference,
+      expenses,
+      totalExpenses,
+      net,
+    };
   }, [data]);
 
   if (!church) return <><PageHeader title="Cash Statement" /><NoChurch /></>;
@@ -112,12 +89,19 @@ export function CashStatementPage() {
       location: [church.address, church.city].filter(Boolean).join(", "),
       start,
       end,
-      categories: view.categories,
+      categories: view.categories.map((c) => ({
+        name: c.name,
+        fund: FUND_LABEL[c.fundType],
+        splitPct: c.splitPct,
+        amount: c.amount,
+        trust: c.trust,
+        local: c.local,
+      })),
       totalReceipts: view.totalReceipts,
-      conference: view.conference,
       trust: view.trust,
       local: view.local,
       camp: view.camp,
+      balanced: view.balanced,
       expenses: view.expenses.map((e) => ({
         date: e.transaction_date,
         description: e.description ?? "",
