@@ -113,7 +113,11 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         {Object.entries(nav).map(([group, items]) => {
-          const visible = items.filter((item) => canAccess(item.url, userRoles));
+          const visible = items.filter(
+            (item) =>
+              canAccess(item.url, userRoles) &&
+              (item.url !== "/my-giving" || userRoles.includes("member")),
+          );
           if (visible.length === 0) return null;
           return (
           <SidebarGroup key={group}>
