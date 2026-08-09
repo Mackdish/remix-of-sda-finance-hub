@@ -5,7 +5,7 @@ import { ReceiptsPage } from "@/features/receipts/receipts-page";
 export const Route = createFileRoute("/_authenticated/receipts")({
   head: () => ({ meta: [{ title: "Receipts — SDA Treasurer" }] }),
   component: () => (
-    <RoleGate allow={["admin", "treasurer"]}>
+    <RoleGate allow={["admin", "treasurer", "elder"]}>
       <ReceiptsPage />
     </RoleGate>
   ),
