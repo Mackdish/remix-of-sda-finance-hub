@@ -43,5 +43,5 @@ function AuditPage() {
 
 export const Route = createFileRoute("/_authenticated/audit")({
   head: () => ({ meta: [{ title: "Audit Trail — SDA Treasurer" }] }),
-  component: () => (<RoleGate allow={["admin", "auditor"]}><AuditPage /></RoleGate>),
+  component: () => (<RoleGate allow={["admin", "treasurer", "elder", "auditor"]}><AuditPage /></RoleGate>),
 });

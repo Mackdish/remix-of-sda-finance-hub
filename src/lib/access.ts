@@ -1,34 +1,50 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "admin" | "treasurer" | "auditor";
+export type AppRole = "admin" | "pastor" | "elder" | "treasurer" | "auditor" | "member";
+
+/** Roles with full rights across the app. */
+export const FULL_ACCESS: AppRole[] = ["admin", "treasurer", "elder"];
+/** Roles that may view (read-only) reporting surfaces. */
+const VIEWERS: AppRole[] = [...FULL_ACCESS, "pastor", "auditor"];
 
 /** Which roles may access each app route path. */
 export const ROUTE_ACCESS: Record<string, AppRole[]> = {
-  "/dashboard": ["admin", "treasurer", "auditor"],
-  "/receipts": ["admin", "treasurer"],
-  "/expenses": ["admin", "treasurer"],
-  "/members": ["admin", "treasurer"],
-  "/member-contributions": ["admin", "treasurer", "auditor"],
-  "/departments": ["admin", "treasurer", "auditor"],
-  "/trust-funds": ["admin", "treasurer", "auditor"],
-  "/local-funds": ["admin", "treasurer", "auditor"],
-  "/camp-funds": ["admin", "treasurer", "auditor"],
-  "/cash-statement": ["admin", "treasurer", "auditor"],
-  "/weekly-report": ["admin", "treasurer", "auditor"],
-  "/monthly-statement": ["admin", "treasurer", "auditor"],
-  "/remittance": ["admin", "treasurer"],
-  "/reports": ["admin", "treasurer", "auditor"],
-  "/church-profile": ["admin", "treasurer"],
+  "/dashboard": VIEWERS,
+  "/receipts": FULL_ACCESS,
+  "/expenses": FULL_ACCESS,
+  "/members": FULL_ACCESS,
+  "/member-contributions": VIEWERS,
+  "/departments": VIEWERS,
+  "/trust-funds": VIEWERS,
+  "/local-funds": VIEWERS,
+  "/camp-funds": VIEWERS,
+  "/cash-statement": VIEWERS,
+  "/weekly-report": VIEWERS,
+  "/monthly-statement": VIEWERS,
+  "/remittance": FULL_ACCESS,
+  "/reports": VIEWERS,
+  "/church-profile": FULL_ACCESS,
   "/admin": ["admin"],
-  "/approvals": ["admin"],
-  "/audit": ["admin", "auditor"],
+  "/approvals": FULL_ACCESS,
+  "/audit": ["admin", "auditor", "elder", "treasurer"],
+  "/my-giving": ["member", ...VIEWERS],
 };
 
 export function canAccess(path: string, roles: AppRole[]): boolean {
   const allowed = ROUTE_ACCESS[path];
   if (!allowed) return true;
   return roles.some((r) => allowed.includes(r));
+}
+
+/** First route the given roles may open — used for post-login landing. */
+export function landingRoute(roles: AppRole[]): string {
+  if (canAccess("/dashboard", roles)) return "/dashboard";
+  return "/my-giving";
+}
+
+export function isMemberOnly(roles: AppRole[]): boolean {
+  return roles.length > 0 && roles.every((r) => r === "member");
 }
 
 /** Fetch the signed-in user's roles from public.user_roles. */

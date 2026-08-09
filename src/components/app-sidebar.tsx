@@ -35,6 +35,7 @@ import {
   Tent,
   Trophy,
   Layers,
+  HandCoins,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ import { useUserRoles, canAccess } from "@/lib/access";
 const nav = {
   Overview: [
     { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+    { title: "My Contributions", url: "/my-giving", icon: HandCoins },
   ],
   Transactions: [
     { title: "Receipts", url: "/receipts", icon: Receipt },
@@ -111,7 +113,11 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         {Object.entries(nav).map(([group, items]) => {
-          const visible = items.filter((item) => canAccess(item.url, userRoles));
+          const visible = items.filter(
+            (item) =>
+              canAccess(item.url, userRoles) &&
+              (item.url !== "/my-giving" || userRoles.includes("member")),
+          );
           if (visible.length === 0) return null;
           return (
           <SidebarGroup key={group}>

@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_authenticated/member-contributions")({
     ],
   }),
   component: () => (
-    <RoleGate allow={["admin", "treasurer", "auditor"]}>
+    <RoleGate allow={["admin", "treasurer", "elder", "pastor", "auditor"]}>
       <MemberContributionsPage />
     </RoleGate>
   ),

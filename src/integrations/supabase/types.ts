@@ -629,6 +629,7 @@ export type Database = {
           full_name: string | null
           id: string
           is_active: boolean
+          member_id: string | null
           phone: string | null
           primary_church_id: string | null
           updated_at: string
@@ -638,6 +639,7 @@ export type Database = {
           full_name?: string | null
           id: string
           is_active?: boolean
+          member_id?: string | null
           phone?: string | null
           primary_church_id?: string | null
           updated_at?: string
@@ -647,11 +649,19 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_active?: boolean
+          member_id?: string | null
           phone?: string | null
           primary_church_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "church_members"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_primary_church_id_fkey"
             columns: ["primary_church_id"]
@@ -985,9 +995,20 @@ export type Database = {
         Returns: boolean
       }
       user_church_ids: { Args: { _user_id: string }; Returns: string[] }
+      user_in_church: {
+        Args: { _church_id: string; _user_id: string }
+        Returns: boolean
+      }
+      user_member_id: { Args: { _user_id: string }; Returns: string }
     }
     Enums: {
-      app_role: "admin" | "treasurer" | "auditor"
+      app_role:
+        | "admin"
+        | "treasurer"
+        | "auditor"
+        | "pastor"
+        | "elder"
+        | "member"
       fund_type: "trust" | "local" | "camp"
       payment_method:
         | "cash"
@@ -1122,7 +1143,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "treasurer", "auditor"],
+      app_role: ["admin", "treasurer", "auditor", "pastor", "elder", "member"],
       fund_type: ["trust", "local", "camp"],
       payment_method: [
         "cash",

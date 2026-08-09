@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_authenticated/departments")({
     ],
   }),
   component: () => (
-    <RoleGate allow={["admin", "treasurer", "auditor"]}>
+    <RoleGate allow={["admin", "treasurer", "elder", "pastor", "auditor"]}>
       <DepartmentsPage />
     </RoleGate>
   ),

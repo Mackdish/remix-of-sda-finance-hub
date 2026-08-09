@@ -5,7 +5,7 @@ import { RemittancePage } from "@/features/remittance/remittance-page";
 export const Route = createFileRoute("/_authenticated/remittance")({
   head: () => ({ meta: [{ title: "Conference Remittance — SDA Treasurer" }] }),
   component: () => (
-    <RoleGate allow={["admin", "treasurer"]}>
+    <RoleGate allow={["admin", "treasurer", "elder"]}>
       <RemittancePage />
     </RoleGate>
   ),
