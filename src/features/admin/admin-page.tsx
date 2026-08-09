@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
+import { UserAccountsCard } from "@/features/admin/user-accounts-card";
 
 export function AdminPage() {
   const { data: church } = useCurrentChurch();
@@ -106,7 +107,9 @@ export function AdminPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Administration" description="Manage offering categories, expense categories and user roles." />
+      <PageHeader title="Administration" description="Create user accounts and manage offering categories, expense categories and roles." />
+
+      <UserAccountsCard churchId={church.id} />
 
       <Card>
         <CardHeader><CardTitle className="text-base">Offering categories</CardTitle></CardHeader>
