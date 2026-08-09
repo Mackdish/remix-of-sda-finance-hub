@@ -18,6 +18,7 @@ import { Route as AuthenticatedTrustFundsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedRemittanceRouteImport } from './routes/_authenticated/remittance'
 import { Route as AuthenticatedReceiptsRouteImport } from './routes/_authenticated/receipts'
+import { Route as AuthenticatedMyGivingRouteImport } from './routes/_authenticated/my-giving'
 import { Route as AuthenticatedMonthlyStatementRouteImport } from './routes/_authenticated/monthly-statement'
 import { Route as AuthenticatedMembersRouteImport } from './routes/_authenticated/members'
 import { Route as AuthenticatedMemberContributionsRouteImport } from './routes/_authenticated/member-contributions'
@@ -79,6 +80,11 @@ const AuthenticatedRemittanceRoute = AuthenticatedRemittanceRouteImport.update({
 const AuthenticatedReceiptsRoute = AuthenticatedReceiptsRouteImport.update({
   id: '/receipts',
   path: '/receipts',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMyGivingRoute = AuthenticatedMyGivingRouteImport.update({
+  id: '/my-giving',
+  path: '/my-giving',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMonthlyStatementRoute =
@@ -194,6 +200,7 @@ export interface FileRoutesByFullPath {
   '/member-contributions': typeof AuthenticatedMemberContributionsRoute
   '/members': typeof AuthenticatedMembersRoute
   '/monthly-statement': typeof AuthenticatedMonthlyStatementRoute
+  '/my-giving': typeof AuthenticatedMyGivingRoute
   '/receipts': typeof AuthenticatedReceiptsRoute
   '/remittance': typeof AuthenticatedRemittanceRoute
   '/reports': typeof AuthenticatedReportsRoute
@@ -221,6 +228,7 @@ export interface FileRoutesByTo {
   '/member-contributions': typeof AuthenticatedMemberContributionsRoute
   '/members': typeof AuthenticatedMembersRoute
   '/monthly-statement': typeof AuthenticatedMonthlyStatementRoute
+  '/my-giving': typeof AuthenticatedMyGivingRoute
   '/receipts': typeof AuthenticatedReceiptsRoute
   '/remittance': typeof AuthenticatedRemittanceRoute
   '/reports': typeof AuthenticatedReportsRoute
@@ -250,6 +258,7 @@ export interface FileRoutesById {
   '/_authenticated/member-contributions': typeof AuthenticatedMemberContributionsRoute
   '/_authenticated/members': typeof AuthenticatedMembersRoute
   '/_authenticated/monthly-statement': typeof AuthenticatedMonthlyStatementRoute
+  '/_authenticated/my-giving': typeof AuthenticatedMyGivingRoute
   '/_authenticated/receipts': typeof AuthenticatedReceiptsRoute
   '/_authenticated/remittance': typeof AuthenticatedRemittanceRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
@@ -279,6 +288,7 @@ export interface FileRouteTypes {
     | '/member-contributions'
     | '/members'
     | '/monthly-statement'
+    | '/my-giving'
     | '/receipts'
     | '/remittance'
     | '/reports'
@@ -306,6 +316,7 @@ export interface FileRouteTypes {
     | '/member-contributions'
     | '/members'
     | '/monthly-statement'
+    | '/my-giving'
     | '/receipts'
     | '/remittance'
     | '/reports'
@@ -334,6 +345,7 @@ export interface FileRouteTypes {
     | '/_authenticated/member-contributions'
     | '/_authenticated/members'
     | '/_authenticated/monthly-statement'
+    | '/_authenticated/my-giving'
     | '/_authenticated/receipts'
     | '/_authenticated/remittance'
     | '/_authenticated/reports'
@@ -417,6 +429,13 @@ declare module '@tanstack/react-router' {
       path: '/receipts'
       fullPath: '/receipts'
       preLoaderRoute: typeof AuthenticatedReceiptsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/my-giving': {
+      id: '/_authenticated/my-giving'
+      path: '/my-giving'
+      fullPath: '/my-giving'
+      preLoaderRoute: typeof AuthenticatedMyGivingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/monthly-statement': {
@@ -555,6 +574,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMemberContributionsRoute: typeof AuthenticatedMemberContributionsRoute
   AuthenticatedMembersRoute: typeof AuthenticatedMembersRoute
   AuthenticatedMonthlyStatementRoute: typeof AuthenticatedMonthlyStatementRoute
+  AuthenticatedMyGivingRoute: typeof AuthenticatedMyGivingRoute
   AuthenticatedReceiptsRoute: typeof AuthenticatedReceiptsRoute
   AuthenticatedRemittanceRoute: typeof AuthenticatedRemittanceRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
@@ -576,6 +596,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMemberContributionsRoute: AuthenticatedMemberContributionsRoute,
   AuthenticatedMembersRoute: AuthenticatedMembersRoute,
   AuthenticatedMonthlyStatementRoute: AuthenticatedMonthlyStatementRoute,
+  AuthenticatedMyGivingRoute: AuthenticatedMyGivingRoute,
   AuthenticatedReceiptsRoute: AuthenticatedReceiptsRoute,
   AuthenticatedRemittanceRoute: AuthenticatedRemittanceRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
