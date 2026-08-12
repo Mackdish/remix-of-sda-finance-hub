@@ -202,30 +202,3 @@ export function MyGivingPage() {
     </div>
   );
 }
-
-function downloadReceipt(r: Row, name: string) {
-  const w = window.open("", "_blank", "width=700,height=600");
-  if (!w) return;
-  w.document.write(`<!doctype html><html><head><title>Receipt ${r.receipt_number}</title>
-  <style>body{font-family:system-ui,sans-serif;padding:32px;color:#111}
-  h1{font-size:18px;margin:0 0 4px}table{width:100%;border-collapse:collapse;margin-top:16px}
-  td{border:1px solid #ddd;padding:8px;font-size:13px}
-  .total{font-size:20px;font-weight:700;margin-top:16px}
-  @page{size:A5;margin:12mm}</style></head><body>
-  <h1>Seventh-day Adventist Church — Official Receipt</h1>
-  <div>Receipt No. <strong>${r.receipt_number}</strong></div>
-  <table>
-    <tr><td>Received from</td><td>${name}</td></tr>
-    <tr><td>Date</td><td>${r.transaction_date}</td></tr>
-    <tr><td>Category</td><td>${r.category}</td></tr>
-    <tr><td>Fund</td><td>${r.fund}</td></tr>
-    <tr><td>Payment method</td><td>${r.payment_method}</td></tr>
-    ${r.description ? `<tr><td>Notes</td><td>${r.description}</td></tr>` : ""}
-  </table>
-  <div class="total">${r.amount.toFixed(2)}</div>
-  <p style="margin-top:32px;font-size:12px">Treasurer signature: ______________________</p>
-  </body></html>`);
-  w.document.close();
-  w.focus();
-  setTimeout(() => { w.print(); w.close(); }, 300);
-}
