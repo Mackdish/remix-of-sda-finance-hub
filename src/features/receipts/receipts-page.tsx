@@ -39,7 +39,7 @@ export function ReceiptsPage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
-  const [printing, setPrinting] = useState<ReceiptRow | null>(null);
+  const [printing, setPrinting] = useState<ReceiptRow[] | null>(null);
 
   const { data: cats = [] } = useQuery({
     queryKey: ["offering-cats", church?.id],
@@ -127,7 +127,7 @@ export function ReceiptsPage() {
                 setOpen(false);
                 qc.invalidateQueries({ queryKey: ["receipts"] });
                 qc.invalidateQueries({ queryKey: ["dashboard"] });
-                if (row) setPrinting(row);
+                if (row && row.length) setPrinting(row);
               }}
             />
           </Dialog>
@@ -188,7 +188,7 @@ export function ReceiptsPage() {
                             rejectionReason={r.rejection_reason}
                             invalidateKeys={["receipts", "dashboard"]}
                           />
-                          <Button size="sm" variant="ghost" onClick={() => setPrinting(r)}>
+                          <Button size="sm" variant="ghost" onClick={() => setPrinting([r])}>
                             <Printer className="h-4 w-4" />
                           </Button>
                         </div>
@@ -203,7 +203,7 @@ export function ReceiptsPage() {
       </Card>
 
       {printing && (
-        <PrintReceiptDialog receipt={printing} church={church} onClose={() => setPrinting(null)} />
+        <PrintReceiptDialog receipts={printing} church={church} onClose={() => setPrinting(null)} />
       )}
     </div>
   );
@@ -216,8 +216,10 @@ function NewReceiptDialog({
   categories: Category[];
   members: Member[];
   departments: Department[];
-  onDone: (row: ReceiptRow | null) => void;
+  onDone: (rows: ReceiptRow[] | null) => void;
 }) {
+  const [mode, setMode] = useState<"single" | "multi">("single");
+  const [amounts, setAmounts] = useState<Record<string, string>>({});
   const [form, setForm] = useState({
     transaction_date: new Date().toISOString().slice(0, 10),
     member_id: "",
@@ -233,41 +235,62 @@ function NewReceiptDialog({
     description: "",
   });
 
+  const multiTotal = useMemo(
+    () => categories.reduce((s, c) => s + (Number(amounts[c.id]) || 0), 0),
+    [categories, amounts],
+  );
+
   const create = useMutation({
     mutationFn: async () => {
-      const amount = Number(form.amount);
-      if (!amount || amount <= 0) throw new Error("Enter a valid amount");
-      if (!form.offering_category_id) throw new Error("Select an offering category");
       if (!form.member_name.trim()) throw new Error("Enter the giver's name");
       const { data: uData } = await supabase.auth.getUser();
-      const receipt_number = `R-${Date.now().toString().slice(-8)}`;
+      const base = `R-${Date.now().toString().slice(-8)}`;
+      const lines =
+        mode === "single"
+          ? [{ offering_category_id: form.offering_category_id, amount: Number(form.amount) }]
+          : categories
+              .map((c) => ({ offering_category_id: c.id, amount: Number(amounts[c.id]) || 0 }))
+              .filter((l) => l.amount > 0);
+
+      if (mode === "single") {
+        if (!form.offering_category_id) throw new Error("Select an offering category");
+        if (!lines[0]!.amount || lines[0]!.amount <= 0) throw new Error("Enter a valid amount");
+      } else if (lines.length === 0) {
+        throw new Error("Enter at least one category amount");
+      }
+
+      const payload = lines.map((l, i) => ({
+        church_id: church.id,
+        receipt_number: lines.length > 1 ? `${base}-${i + 1}` : base,
+        transaction_date: form.transaction_date,
+        member_id: form.member_id || null,
+        member_name: form.member_name.trim(),
+        membership_number: form.membership_number || null,
+        phone: form.phone || null,
+        department: form.department || null,
+        department_id: form.department_id || null,
+        offering_category_id: l.offering_category_id,
+        amount: l.amount,
+        payment_method: form.payment_method,
+        reference_number: form.reference_number || null,
+        description: form.description || null,
+        recorded_by: uData.user?.id ?? null,
+      }));
+
       const { data, error } = await supabase
         .from("receipts")
-        .insert({
-          church_id: church.id,
-          receipt_number,
-          transaction_date: form.transaction_date,
-          member_id: form.member_id || null,
-          member_name: form.member_name.trim(),
-          membership_number: form.membership_number || null,
-          phone: form.phone || null,
-          department: form.department || null,
-          department_id: form.department_id || null,
-          offering_category_id: form.offering_category_id,
-          amount,
-          payment_method: form.payment_method,
-          reference_number: form.reference_number || null,
-          description: form.description || null,
-          recorded_by: uData.user?.id ?? null,
-        })
-        .select("id,receipt_number,transaction_date,member_name,membership_number,amount,payment_method,is_locked,reversed_at,offering_categories(name,fund_type)")
-        .single();
+        .insert(payload)
+        .select("id,receipt_number,transaction_date,member_name,membership_number,amount,payment_method,is_locked,reversed_at,offering_categories(name,fund_type)");
       if (error) throw error;
-      return data as unknown as ReceiptRow;
+      return (data ?? []) as unknown as ReceiptRow[];
     },
-    onSuccess: (row) => {
-      toast.success(`Receipt ${row.receipt_number} recorded`);
-      onDone(row);
+    onSuccess: (rows) => {
+      toast.success(
+        rows.length > 1
+          ? `${rows.length} receipt lines recorded for ${form.member_name.trim()}`
+          : `Receipt ${rows[0]?.receipt_number} recorded`,
+      );
+      onDone(rows);
     },
     onError: (e: any) => toast.error(e.message ?? "Failed to save"),
   });
@@ -275,6 +298,14 @@ function NewReceiptDialog({
   return (
     <DialogContent className="max-w-2xl">
       <DialogHeader><DialogTitle>New Receipt</DialogTitle></DialogHeader>
+      <div className="flex gap-2">
+        <Button size="sm" variant={mode === "single" ? "default" : "outline"} onClick={() => setMode("single")}>
+          Single category
+        </Button>
+        <Button size="sm" variant={mode === "multi" ? "default" : "outline"} onClick={() => setMode("multi")}>
+          All categories at once
+        </Button>
+      </div>
       <div className="grid gap-3 md:grid-cols-2">
         <div>
           <Label>Date</Label>
@@ -314,23 +345,53 @@ function NewReceiptDialog({
           <Label>Phone</Label>
           <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
         </div>
-        <div>
-          <Label>Offering category *</Label>
-          <Select value={form.offering_category_id} onValueChange={(v) => setForm({ ...form, offering_category_id: v })}>
-            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-            <SelectContent>
+        {mode === "single" ? (
+          <>
+            <div>
+              <Label>Offering category *</Label>
+              <Select value={form.offering_category_id} onValueChange={(v) => setForm({ ...form, offering_category_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                <SelectContent>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name} <span className="text-xs text-muted-foreground">({c.fund_type})</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Amount (KES) *</Label>
+              <Input type="number" step="0.01" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
+            </div>
+          </>
+        ) : (
+          <div className="md:col-span-2">
+            <Label>Contributions by category *</Label>
+            <div className="mt-2 max-h-64 overflow-y-auto rounded-md border border-border divide-y divide-border">
               {categories.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.name} <span className="text-xs text-muted-foreground">({c.fund_type})</span>
-                </SelectItem>
+                <div key={c.id} className="flex items-center gap-3 px-3 py-2">
+                  <div className="flex-1 text-sm">
+                    {c.name}{" "}
+                    <span className="text-xs text-muted-foreground">({c.fund_type})</span>
+                  </div>
+                  <Input
+                    className="w-32"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={amounts[c.id] ?? ""}
+                    onChange={(e) => setAmounts({ ...amounts, [c.id]: e.target.value })}
+                  />
+                </div>
               ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>Amount (KES) *</Label>
-          <Input type="number" step="0.01" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
-        </div>
+            </div>
+            <div className="mt-2 flex justify-between text-sm font-medium">
+              <span>Total</span>
+              <span>{formatCurrency(multiTotal)}</span>
+            </div>
+          </div>
+        )}
         <div>
           <Label>Payment method</Label>
           <Select value={form.payment_method} onValueChange={(v) => setForm({ ...form, payment_method: v as any })}>
@@ -369,12 +430,14 @@ function NewReceiptDialog({
 }
 
 function PrintReceiptDialog({
-  receipt, church, onClose,
+  receipts, church, onClose,
 }: {
-  receipt: ReceiptRow;
+  receipts: ReceiptRow[];
   church: { name: string; address?: string | null; city?: string | null; phone?: string | null };
   onClose: () => void;
 }) {
+  const receipt = receipts[0]!;
+  const total = receipts.reduce((s, r) => s + Number(r.amount || 0), 0);
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-lg">
@@ -389,12 +452,24 @@ function PrintReceiptDialog({
             <div className="mt-2 font-semibold">OFFICIAL RECEIPT</div>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div><span className="text-muted-foreground">Receipt #:</span> <span className="font-mono">{receipt.receipt_number}</span></div>
+            <div><span className="text-muted-foreground">Receipt #:</span> <span className="font-mono">{receipts.map((r) => r.receipt_number).join(", ")}</span></div>
             <div><span className="text-muted-foreground">Date:</span> {receipt.transaction_date}</div>
             <div className="col-span-2"><span className="text-muted-foreground">Received from:</span> <span className="font-medium">{receipt.member_name}</span></div>
-            <div className="col-span-2"><span className="text-muted-foreground">Being:</span> {receipt.offering_categories?.name}</div>
+            <div className="col-span-2">
+              <div className="text-muted-foreground">Being:</div>
+              <table className="w-full mt-1">
+                <tbody>
+                  {receipts.map((r) => (
+                    <tr key={r.id}>
+                      <td className="py-0.5">{r.offering_categories?.name ?? "—"}</td>
+                      <td className="py-0.5 text-right">{formatCurrency(r.amount)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             <div><span className="text-muted-foreground">Method:</span> <span className="capitalize">{receipt.payment_method.replace("_", " ")}</span></div>
-            <div className="text-right"><span className="text-muted-foreground">Amount:</span> <span className="font-bold">{formatCurrency(receipt.amount)}</span></div>
+            <div className="text-right"><span className="text-muted-foreground">Total:</span> <span className="font-bold">{formatCurrency(total)}</span></div>
           </div>
           <div className="mt-6 pt-4 border-t border-border text-xs text-muted-foreground text-center italic">
             Thank you for your faithful stewardship. — Malachi 3:10
