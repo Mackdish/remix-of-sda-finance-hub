@@ -430,12 +430,14 @@ function NewReceiptDialog({
 }
 
 function PrintReceiptDialog({
-  receipt, church, onClose,
+  receipts, church, onClose,
 }: {
-  receipt: ReceiptRow;
+  receipts: ReceiptRow[];
   church: { name: string; address?: string | null; city?: string | null; phone?: string | null };
   onClose: () => void;
 }) {
+  const receipt = receipts[0]!;
+  const total = receipts.reduce((s, r) => s + Number(r.amount || 0), 0);
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-lg">
@@ -450,12 +452,24 @@ function PrintReceiptDialog({
             <div className="mt-2 font-semibold">OFFICIAL RECEIPT</div>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div><span className="text-muted-foreground">Receipt #:</span> <span className="font-mono">{receipt.receipt_number}</span></div>
+            <div><span className="text-muted-foreground">Receipt #:</span> <span className="font-mono">{receipts.map((r) => r.receipt_number).join(", ")}</span></div>
             <div><span className="text-muted-foreground">Date:</span> {receipt.transaction_date}</div>
             <div className="col-span-2"><span className="text-muted-foreground">Received from:</span> <span className="font-medium">{receipt.member_name}</span></div>
-            <div className="col-span-2"><span className="text-muted-foreground">Being:</span> {receipt.offering_categories?.name}</div>
+            <div className="col-span-2">
+              <div className="text-muted-foreground">Being:</div>
+              <table className="w-full mt-1">
+                <tbody>
+                  {receipts.map((r) => (
+                    <tr key={r.id}>
+                      <td className="py-0.5">{r.offering_categories?.name ?? "—"}</td>
+                      <td className="py-0.5 text-right">{formatCurrency(r.amount)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             <div><span className="text-muted-foreground">Method:</span> <span className="capitalize">{receipt.payment_method.replace("_", " ")}</span></div>
-            <div className="text-right"><span className="text-muted-foreground">Amount:</span> <span className="font-bold">{formatCurrency(receipt.amount)}</span></div>
+            <div className="text-right"><span className="text-muted-foreground">Total:</span> <span className="font-bold">{formatCurrency(total)}</span></div>
           </div>
           <div className="mt-6 pt-4 border-t border-border text-xs text-muted-foreground text-center italic">
             Thank you for your faithful stewardship. — Malachi 3:10
