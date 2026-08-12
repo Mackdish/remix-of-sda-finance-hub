@@ -1,6 +1,10 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { getMyReceipt } from "@/lib/receipts.functions";
+import { receiptSlipHtml } from "@/lib/receipt-slip";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +25,21 @@ type Row = {
 
 export function MyGivingPage() {
   const [year, setYear] = useState<number>(new Date().getFullYear());
+  const fetchReceipt = useServerFn(getMyReceipt);
+
+  async function downloadReceipt(id: string) {
+    try {
+      const slip = await fetchReceipt({ data: { receiptId: id } });
+      const w = window.open("", "_blank", "width=800,height=620");
+      if (!w) return;
+      w.document.write(receiptSlipHtml(slip));
+      w.document.close();
+      w.focus();
+      setTimeout(() => { w.print(); }, 350);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not download this receipt");
+    }
+  }
 
   const { data, isLoading } = useQuery({
     queryKey: ["my-giving", year],
@@ -167,7 +186,7 @@ export function MyGivingPage() {
                         <td className="py-1 pr-4 capitalize">{r.payment_method.replace("_", " ")}</td>
                         <td className="py-1 pr-4 text-right">{formatCurrency(r.amount)}</td>
                         <td className="text-right no-print">
-                          <Button size="sm" variant="ghost" onClick={() => downloadReceipt(r, data?.name ?? "")}>
+                          <Button size="sm" variant="ghost" onClick={() => downloadReceipt(r.id)}>
                             <Download className="h-4 w-4" />
                           </Button>
                         </td>
