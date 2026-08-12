@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { UserAccountsCard } from "@/features/admin/user-accounts-card";
+import { BulkInviteCard } from "@/features/admin/bulk-invite-card";
 
 export function AdminPage() {
   const { data: church } = useCurrentChurch();
@@ -110,6 +111,8 @@ export function AdminPage() {
       <PageHeader title="Administration" description="Create user accounts and manage offering categories, expense categories and roles." />
 
       <UserAccountsCard churchId={church.id} />
+
+      <BulkInviteCard churchId={church.id} />
 
       <Card>
         <CardHeader><CardTitle className="text-base">Offering categories</CardTitle></CardHeader>

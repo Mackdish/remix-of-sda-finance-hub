@@ -88,3 +88,90 @@ export const listChurchUsers = createServerFn({ method: "GET" })
       email: emailById.get(r.user_id) ?? "—",
     }));
   });
+const bulkSchema = z.object({
+  churchId: z.string().uuid(),
+  defaultRole: z.enum(["admin", "pastor", "elder", "treasurer", "auditor", "member"]),
+  invites: z
+    .array(
+      z.object({
+        email: z.string().email(),
+        fullName: z.string().min(2),
+        role: z.enum(["admin", "pastor", "elder", "treasurer", "auditor", "member"]).optional(),
+      }),
+    )
+    .min(1)
+    .max(200),
+});
+
+function tempPassword() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  let out = "";
+  for (let i = 0; i < 12; i += 1) out += chars[Math.floor(Math.random() * chars.length)];
+  return out;
+}
+
+/** Creates many accounts at once. Returns per-row status plus the temporary
+ *  password so the administrator can hand credentials to each person. */
+export const bulkInviteChurchUsers = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => bulkSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    const { data: isAdmin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (!isAdmin) throw new Error("Only administrators can invite users");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const results: Array<{
+      email: string;
+      fullName: string;
+      role: string;
+      password?: string;
+      ok: boolean;
+      error?: string;
+    }> = [];
+
+    for (const invite of data.invites) {
+      const role = invite.role ?? data.defaultRole;
+      const password = tempPassword();
+      try {
+        const created = await supabaseAdmin.auth.admin.createUser({
+          email: invite.email,
+          password,
+          email_confirm: true,
+          user_metadata: { full_name: invite.fullName },
+        });
+        if (created.error || !created.data.user) {
+          throw new Error(created.error?.message ?? "Could not create the account");
+        }
+        const uid = created.data.user.id;
+
+        const { error: profileError } = await supabaseAdmin.from("profiles").upsert({
+          id: uid,
+          full_name: invite.fullName,
+          primary_church_id: data.churchId,
+          is_active: true,
+        });
+        if (profileError) throw new Error(profileError.message);
+
+        const { error: roleError } = await supabaseAdmin
+          .from("user_roles")
+          .insert({ user_id: uid, role, church_id: data.churchId });
+        if (roleError) throw new Error(roleError.message);
+
+        results.push({ email: invite.email, fullName: invite.fullName, role, password, ok: true });
+      } catch (e) {
+        results.push({
+          email: invite.email,
+          fullName: invite.fullName,
+          role,
+          ok: false,
+          error: e instanceof Error ? e.message : "Failed",
+        });
+      }
+    }
+
+    return results;
+  });
