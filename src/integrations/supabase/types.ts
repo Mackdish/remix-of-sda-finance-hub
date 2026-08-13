@@ -576,6 +576,62 @@ export type Database = {
           },
         ]
       }
+      notices: {
+        Row: {
+          category: string
+          church_id: string
+          created_at: string
+          created_by: string | null
+          ends_on: string | null
+          id: string
+          is_active: boolean
+          message: string
+          show_in_marquee: boolean
+          sort_order: number
+          starts_on: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          church_id: string
+          created_at?: string
+          created_by?: string | null
+          ends_on?: string | null
+          id?: string
+          is_active?: boolean
+          message: string
+          show_in_marquee?: boolean
+          sort_order?: number
+          starts_on?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          church_id?: string
+          created_at?: string
+          created_by?: string | null
+          ends_on?: string | null
+          id?: string
+          is_active?: boolean
+          message?: string
+          show_in_marquee?: boolean
+          sort_order?: number
+          starts_on?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notices_church_id_fkey"
+            columns: ["church_id"]
+            isOneToOne: false
+            referencedRelation: "churches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offering_categories: {
         Row: {
           church_id: string | null
@@ -859,6 +915,65 @@ export type Database = {
             foreignKeyName: "remittances_church_id_fkey"
             columns: ["church_id"]
             isOneToOne: false
+            referencedRelation: "churches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_settings: {
+        Row: {
+          church_id: string
+          contact_note: string | null
+          created_at: string
+          id: string
+          marquee_enabled: boolean
+          marquee_speed: number
+          office_address: string | null
+          office_hours: string | null
+          support_email: string | null
+          support_phone: string | null
+          system_name: string
+          tagline: string | null
+          updated_at: string
+          whatsapp_number: string | null
+        }
+        Insert: {
+          church_id: string
+          contact_note?: string | null
+          created_at?: string
+          id?: string
+          marquee_enabled?: boolean
+          marquee_speed?: number
+          office_address?: string | null
+          office_hours?: string | null
+          support_email?: string | null
+          support_phone?: string | null
+          system_name?: string
+          tagline?: string | null
+          updated_at?: string
+          whatsapp_number?: string | null
+        }
+        Update: {
+          church_id?: string
+          contact_note?: string | null
+          created_at?: string
+          id?: string
+          marquee_enabled?: boolean
+          marquee_speed?: number
+          office_address?: string | null
+          office_hours?: string | null
+          support_email?: string | null
+          support_phone?: string | null
+          system_name?: string
+          tagline?: string | null
+          updated_at?: string
+          whatsapp_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_settings_church_id_fkey"
+            columns: ["church_id"]
+            isOneToOne: true
             referencedRelation: "churches"
             referencedColumns: ["id"]
           },
