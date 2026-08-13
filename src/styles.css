@@ -151,3 +151,15 @@
   body { background: #fff !important; color: #000 !important; }
   .no-print { display: none !important; }
 }
+
+/* Notice marquee */
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: marquee-scroll linear infinite;
+}
+.marquee-track:hover { animation-play-state: paused; }
